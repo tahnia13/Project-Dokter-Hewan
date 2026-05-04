@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Sementara nonaktifkan font custom jika file font tidak ada */
+  /* @font-face {
+    font-family: "Barlow";
+    src: url("/fonts/Barlow-Regular.ttf") format("truetype");
+  }
+
+  @font-face {
+    font-family: "Poppins";
+    src: url("/fonts/Poppins-Regular.ttf") format("truetype");
+  } */
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #fce7f3;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #ec4899;
+    border-radius: 10px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-pink-100 hover:shadow-md transition-all duration-300;
+  }
+  .btn-primary {
+    @apply bg-gradient-to-r from-pink-500 to-rose-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300;
+  }
+  .btn-secondary {
+    @apply bg-pink-100 text-pink-700 px-5 py-2.5 rounded-xl font-semibold hover:bg-pink-200 transition-all;
+  }
+  .input-primary {
+    @apply w-full px-4 py-3 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent outline-none transition-all bg-pink-50/30;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  }
+  .bg-gradient-soft-pink {
+    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+  }
+  .text-gradient-pink {
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
