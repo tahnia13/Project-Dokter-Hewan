@@ -41,28 +41,47 @@ export default function Veterinarians() {
     v.license.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-if (isLoading) return <LoadingSpinner fullScreen text="Memuat data dokter..." />;
-if (isDeleting) return <LoadingSpinner fullScreen text="Menghapus data dokter..." />
+  if (isLoading) return <LoadingSpinner fullScreen text="Memuat data dokter..." />;
+  if (isDeleting) return <LoadingSpinner fullScreen text="Menghapus data dokter..." />;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader title="Dokter Hewan" subtitle={`${veterinarians.length} Dokter Terdaftar`} breadcrumb={["Dashboard", "Dokter"]}>
-        <button onClick={() => navigate("/add-veterinarian")} className="btn-primary inline-flex items-center gap-2"><FaPlus /> Tambah Dokter</button>
+        <button onClick={() => navigate("/add-veterinarian")} className="btn-primary inline-flex items-center gap-1 text-sm py-1.5 px-3"><FaPlus size={12} /> Tambah Dokter</button>
       </PageHeader>
 
-      <div className="card p-5"><div className="relative"><FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-pink-400" /><input type="text" placeholder="Cari nama dokter, spesialisasi, atau STR..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="input-primary pl-11" /></div></div>
+      <div className="card p-4"><div className="relative"><FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" /><input type="text" placeholder="Cari nama dokter, spesialisasi, atau STR..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="input-primary pl-9" /></div></div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((vet) => (
           <div key={vet.id} className="card overflow-hidden">
-            <div className="bg-gradient-to-r from-pink-50 to-rose-50 p-4 border-b border-pink-100"><div className="flex items-center justify-between"><div className="flex items-center gap-3"><div className="bg-white rounded-full p-3 shadow-sm"><FaUserMd className="text-pink-500 text-2xl" /></div><div><h3 className="font-bold text-pink-800 text-lg">{vet.name}</h3><p className="text-xs text-pink-400">{vet.id}</p></div></div><span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(vet.status)}`}>{vet.status === "Active" ? "Aktif" : "Cuti"}</span></div></div>
-            <div className="p-5 space-y-3"><div className="flex justify-between text-sm border-b border-pink-50 pb-2"><span className="text-pink-500"><FaStethoscope className="inline mr-1" /> Spesialis:</span><span className="font-semibold text-pink-800">{vet.specialization}</span></div><div className="flex justify-between text-sm"><span className="text-pink-500"><FaIdCard className="inline mr-1" /> STR:</span><span className="font-medium text-pink-700 font-mono text-xs">{vet.license}</span></div><div className="flex justify-between text-sm"><span className="text-pink-500"><FaPhone className="inline mr-1" /> Telepon:</span><span className="font-medium text-pink-800">{vet.phone}</span></div><div className="flex justify-between text-sm"><span className="text-pink-500"><FaEnvelope className="inline mr-1" /> Email:</span><span className="font-medium text-pink-800 text-sm break-all">{vet.email}</span></div><div className="flex justify-between text-sm"><span className="text-pink-500"><FaCalendarAlt className="inline mr-1" /> Bergabung:</span><span className="font-medium text-pink-800">{vet.joinDate}</span></div></div>
-            <div className="px-5 py-3 bg-pink-50 border-t border-pink-100 flex gap-2"><button className="flex-1 btn-primary py-2 text-sm flex items-center justify-center gap-2"><FaEye size={12} /> Detail</button><button className="p-2 border border-pink-200 rounded-lg text-pink-600 hover:bg-pink-100"><FaEdit /></button><button onClick={() => handleDelete(vet.id, vet.name)} className="p-2 border border-pink-200 rounded-lg text-red-500 hover:bg-red-50"><FaTrash /></button></div>
+            <div className="bg-gradient-to-r from-[#F5F3FF] to-[#EDE9FE] p-3 border-b border-[#CCC3FF]/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="bg-white rounded-full p-2 shadow-sm"><FaUserMd className="text-[#432C81] text-base" /></div>
+                  <div><h3 className="font-bold text-[#432C81] text-sm font-nunito">{vet.name}</h3><p className="text-[10px] text-gray-400">{vet.id}</p></div>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${getStatusColor(vet.status)}`}>{vet.status === "Active" ? "Aktif" : "Cuti"}</span>
+              </div>
+            </div>
+            <div className="p-3 space-y-2 text-xs">
+              <div className="flex justify-between"><span className="text-gray-500"><FaStethoscope className="inline mr-1 text-[10px]" /> Spesialis:</span><span className="font-semibold text-gray-800">{vet.specialization}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500"><FaIdCard className="inline mr-1 text-[10px]" /> STR:</span><span className="font-mono text-gray-500 text-[10px]">{vet.license}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500"><FaPhone className="inline mr-1 text-[10px]" /> Telepon:</span><span className="font-medium text-gray-700">{vet.phone}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500"><FaEnvelope className="inline mr-1 text-[10px]" /> Email:</span><span className="font-medium text-gray-600 text-[10px] break-all">{vet.email}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500"><FaCalendarAlt className="inline mr-1 text-[10px]" /> Bergabung:</span><span className="font-medium text-gray-700">{vet.joinDate}</span></div>
+            </div>
+            <div className="px-3 py-2 bg-[#F5F3FF] border-t border-[#CCC3FF]/30 flex gap-2">
+              <button className="flex-1 btn-primary py-1 text-[10px] flex items-center justify-center gap-1"><FaEye size={10} /> Detail</button>
+              <button className="p-1.5 border border-[#CCC3FF]/30 rounded-lg text-[#432C81] hover:bg-[#CCC3FF]/20"><FaEdit size={12} /></button>
+              <button onClick={() => handleDelete(vet.id, vet.name)} className="p-1.5 border border-[#CCC3FF]/30 rounded-lg text-red-500 hover:bg-red-50"><FaTrash size={12} /></button>
+            </div>
           </div>
         ))}
       </div>
 
       {filtered.length === 0 && !isLoading && !isDeleting && (
-        <div className="card p-12 text-center"><FaUserMd className="text-6xl text-pink-300 mx-auto mb-4" /><h3 className="text-xl font-semibold text-pink-600">Tidak ada dokter ditemukan</h3><p className="text-pink-400 mt-2">Coba dengan kata kunci yang berbeda</p></div>
+        <div className="card p-8 text-center"><FaUserMd className="text-4xl text-[#CCC3FF] mx-auto mb-2" /><h3 className="text-base font-semibold text-[#432C81] font-nunito">Tidak ada dokter ditemukan</h3><p className="text-xs text-gray-400 mt-1">Coba dengan kata kunci yang berbeda</p></div>
       )}
     </div>
   );

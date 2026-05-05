@@ -3,64 +3,95 @@
 @tailwind utilities;
 
 @layer base {
-  /* Sementara nonaktifkan font custom jika file font tidak ada */
-  /* @font-face {
-    font-family: "Barlow";
-    src: url("/fonts/Barlow-Regular.ttf") format("truetype");
+  @font-face {
+    font-family: "Nunito";
+    src: url("/fonts/Nunito-Regular.ttf") format("truetype");
+  }
+  @font-face {
+    font-family: "Nunito";
+    src: url("/fonts/Nunito-Bold.ttf") format("truetype");
+    font-weight: bold;
+  }
+  @font-face {
+    font-family: "Inter";
+    src: url("/fonts/Inter-Regular.ttf") format("truetype");
+  }
+  @font-face {
+    font-family: "Inter";
+    src: url("/fonts/Inter-Bold.ttf") format("truetype");
+    font-weight: bold;
   }
 
-  @font-face {
-    font-family: "Poppins";
-    src: url("/fonts/Poppins-Regular.ttf") format("truetype");
-  } */
-
   body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+    font-family: "Inter", sans-serif;
+    background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%);
     min-height: 100vh;
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
   }
   ::-webkit-scrollbar-track {
-    background: #fce7f3;
+    background: #E0D4FF;
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    background: #ec4899;
+    background: #432C81;
     border-radius: 10px;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-pink-100 hover:shadow-md transition-all duration-300;
+    @apply bg-white rounded-2xl shadow-md border border-[#CCC3FF]/30 hover:shadow-lg transition-all duration-300;
   }
   .btn-primary {
-    @apply bg-gradient-to-r from-pink-500 to-rose-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300;
+    @apply bg-gradient-to-r from-[#432C81] to-[#58315A] text-white px-4 py-2 rounded-lg font-semibold hover:shadow-md hover:scale-[1.02] transition-all duration-300 text-sm font-nunito;
   }
   .btn-secondary {
-    @apply bg-pink-100 text-pink-700 px-5 py-2.5 rounded-xl font-semibold hover:bg-pink-200 transition-all;
+    @apply bg-[#CCC3FF]/30 text-[#432C81] px-4 py-2 rounded-lg font-semibold hover:bg-[#CCC3FF]/50 transition-all text-sm;
+  }
+  .btn-outline {
+    @apply border-2 border-[#432C81] text-[#432C81] px-4 py-2 rounded-lg font-semibold hover:bg-[#432C81]/10 transition-all text-sm;
   }
   .input-primary {
-    @apply w-full px-4 py-3 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent outline-none transition-all bg-pink-50/30;
+    @apply w-full px-4 py-2.5 border border-[#CCC3FF] rounded-lg focus:ring-2 focus:ring-[#432C81] focus:border-transparent outline-none transition-all bg-white/50 text-sm;
+  }
+  .badge-success {
+    @apply bg-green-100 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-semibold;
+  }
+  .badge-warning {
+    @apply bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded-full text-[10px] font-semibold;
+  }
+  .badge-danger {
+    @apply bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-[10px] font-semibold;
+  }
+  .badge-info {
+    @apply bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-semibold;
   }
 }
 
 @layer utilities {
   .bg-gradient-primary {
-    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    background: linear-gradient(135deg, #432C81 0%, #58315A 100%);
   }
-  .bg-gradient-soft-pink {
-    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+  .bg-gradient-soft {
+    background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%);
   }
-  .text-gradient-pink {
-    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  .bg-gradient-warning {
+    background: linear-gradient(135deg, #FF8989 0%, #ECBB5F 100%);
+  }
+  .text-gradient-primary {
+    background: linear-gradient(135deg, #432C81 0%, #58315A 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+  .font-nunito {
+    font-family: "Nunito", sans-serif;
+  }
+  .font-inter {
+    font-family: "Inter", sans-serif;
   }
   .animate-float {
     animation: float 3s ease-in-out infinite;
@@ -69,5 +100,5 @@
 
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }

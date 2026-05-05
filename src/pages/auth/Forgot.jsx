@@ -8,15 +8,39 @@ export default function Forgot() {
   const handleSubmit = (e) => { e.preventDefault(); setSubmitted(true); setTimeout(() => { window.location.href = "/login"; }, 2000); };
 
   if (submitted) {
-    return (<div className="text-center py-8"><div className="bg-gradient-primary w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"><FaPaw className="text-white text-2xl" /></div><h3 className="text-lg font-semibold text-pink-800">Cek Email Anda!</h3><p className="text-sm text-pink-500 mt-2">Link reset password telah dikirim ke:</p><p className="text-sm font-semibold text-pink-600 mt-1">{email}</p><p className="text-xs text-pink-400 mt-4">Mengalihkan ke halaman login...</p></div>);
+    return (
+      <div className="text-center py-6">
+        <div className="bg-gradient-primary w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
+          <FaPaw className="text-white text-2xl" />
+        </div>
+        <h3 className="text-base font-semibold text-[#432C81] font-nunito">Cek Email Anda!</h3>
+        <p className="text-xs text-gray-500 mt-1">Link reset password telah dikirim ke:</p>
+        <p className="text-xs font-semibold text-[#432C81] mt-0.5">{email}</p>
+        <p className="text-[10px] text-gray-400 mt-3">Mengalihkan ke halaman login...</p>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="text-center mb-6"><div className="bg-gradient-primary w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg"><FaPaw className="text-white text-2xl" /></div><h3 className="text-xl font-bold text-pink-800">Reset Password</h3><p className="text-sm text-pink-500 mt-1">Masukkan email untuk menerima link reset</p></div>
-      <div><label className="block text-sm font-semibold text-pink-800 mb-2">Email</label><div className="relative"><FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-pink-400" /><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input-primary pl-12" placeholder="dokter@petcare.com" required /></div></div>
-      <button type="submit" className="w-full btn-primary">Kirim Link Reset</button>
-      <Link to="/login" className="flex items-center justify-center gap-2 text-sm text-pink-600"><FaArrowLeft className="text-xs" /> Kembali ke Login</Link>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="text-center mb-4">
+        <div className="bg-gradient-primary w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
+          <FaPaw className="text-white text-2xl" />
+        </div>
+        <h3 className="text-lg font-bold text-[#432C81] font-nunito">Reset Password</h3>
+        <p className="text-xs text-gray-500 mt-0.5">Masukkan email untuk menerima link reset</p>
+      </div>
+      <div>
+        <label className="block text-xs font-semibold text-gray-600 mb-1">Email</label>
+        <div className="relative">
+          <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input-primary pl-9" placeholder="dokter@petcare.com" required />
+        </div>
+      </div>
+      <button type="submit" className="w-full btn-primary py-2 text-sm">Kirim Link Reset</button>
+      <Link to="/login" className="flex items-center justify-center gap-2 text-xs text-[#432C81] hover:text-[#58315A]">
+        <FaArrowLeft size={12} /> Kembali ke Login
+      </Link>
     </form>
   );
 }
