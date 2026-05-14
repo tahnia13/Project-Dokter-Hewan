@@ -7,20 +7,14 @@ import {
   FaHeartbeat, 
   FaDog, 
   FaCat, 
-  FaArrowRight, 
-  FaChartLine, 
-  FaStar, 
   FaUserPlus, 
-  FaSyringe, 
-  FaVideo, 
-  FaComment, 
-  FaMapMarkerAlt,
-  FaCalendarAlt,
-  FaClock,
-  FaUserMd
+  FaSyringe,
+  FaUserMd,
+  FaCheckCircle,
+  FaSpinner,
+  FaHourglassHalf,
+  FaClock
 } from "react-icons/fa";
-import PageHeader from "../components/PageHeader";
-import QuickActionCard from "../components/QuickActionCard";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { initialPets, initialAppointments, initialPetOwners, initialVeterinarians } from "../data/clinicData";
 
@@ -42,199 +36,327 @@ export default function Dashboard() {
     }, 500);
   }, []);
 
+  // ========== DATA REAL DARI PROJECT ==========
+  
+  // Total data
   const totalPets = pets.length;
   const totalOwners = owners.length;
-  const today = new Date().toISOString().slice(0,10);
+  const totalVets = veterinarians.length;
+  
+  // Data kunjungan hari ini (dari appointments)
+  const today = new Date().toISOString().slice(0, 10);
   const todayAppointments = appointments.filter(a => a.date === today).length;
+  
+  // Status appointments
+  const completedAppointments = appointments.filter(a => a.status === "Completed").length;
+  const inProgressAppointments = appointments.filter(a => a.status === "In Progress").length;
   const scheduledAppointments = appointments.filter(a => a.status === "Scheduled").length;
+  const cancelledAppointments = appointments.filter(a => a.status === "Cancelled").length;
+  
+  // Data jenis hewan (dari pets)
   const dogsCount = pets.filter(p => p.type === "Dog").length;
   const catsCount = pets.filter(p => p.type === "Cat").length;
   const rabbitsCount = pets.filter(p => p.type === "Rabbit").length;
-  const todaySchedule = appointments.filter(a => a.date === today).slice(0,4);
+  const birdsCount = pets.filter(p => p.type === "Bird").length;
+  const othersCount = pets.filter(p => !["Dog", "Cat", "Rabbit", "Bird"].includes(p.type)).length;
+  
+  // Daftar jenis hewan untuk "Pasien Sering Berkunjung"
+  const petTypes = [
+    { name: "Kucing", count: catsCount, icon: FaCat, color: "bg-orange-100 text-orange-600" },
+    { name: "Anjing", count: dogsCount, icon: FaDog, color: "bg-blue-100 text-blue-600" },
+    { name: "Kelinci", count: rabbitsCount, icon: FaPaw, color: "bg-pink-100 text-pink-600" },
+    { name: "Burung", count: birdsCount, icon: FaHeartbeat, color: "bg-green-100 text-green-600" },
+    { name: "Lainnya", count: othersCount, icon: FaPaw, color: "bg-purple-100 text-purple-600" },
+  ].filter(p => p.count > 0);
 
-  const getPetName = (petId) => {
-    const pet = pets.find(p => p.id === petId);
-    return pet ? pet.name : "Unknown";
+  // Data kunjungan bulanan (dari appointments berdasarkan tanggal)
+  const getMonthlyVisits = () => {
+    const monthly = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    appointments.forEach(apt => {
+      const month = new Date(apt.date).getMonth();
+      if (month >= 0 && month < 12) {
+        monthly[month]++;
+      }
+    });
+    return monthly;
+  };
+  
+  const monthlyVisits = getMonthlyVisits();
+  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+  const maxVisit = Math.max(...monthlyVisits, 1);
+
+  // Data jadwal hari ini (dari appointments)
+  const todayScheduleList = appointments
+    .filter(a => a.date === today)
+    .slice(0, 5)
+    .map(apt => {
+      const pet = pets.find(p => p.id === apt.petId);
+      const owner = owners.find(o => o.id === pet?.ownerId);
+      return {
+        id: apt.id,
+        petName: pet?.name || "Unknown",
+        petType: pet?.type || "Unknown",
+        ownerName: owner?.name || "Unknown",
+        status: apt.status,
+        symptoms: apt.symptoms,
+        time: apt.time,
+        veterinarian: apt.veterinarian
+      };
+    });
+
+  // Data kunjungan terbaru (dari appointments)
+  const recentVisits = appointments
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 5)
+    .map(apt => {
+      const pet = pets.find(p => p.id === apt.petId);
+      return {
+        id: apt.id,
+        petName: pet?.name || "Unknown",
+        petType: pet?.type || "Unknown",
+        veterinarian: apt.veterinarian,
+        date: apt.date,
+        status: apt.status
+      };
+    });
+
+  // Status counts untuk card status
+  const statusCounts = {
+    completed: completedAppointments,
+    inProgress: inProgressAppointments,
+    queue: scheduledAppointments
   };
 
-  // Data Top Doctors dari Veterinarians (Paws & Care)
-  const topDoctors = veterinarians.slice(0,4).map((vet, idx) => ({
-    name: vet.name,
-    specialty: vet.specialization,
-    location: "Indonesia",
-    date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
-    time: ["09:00 AM", "11:00 AM", "02:00 PM", "04:00 PM"][idx],
-    rating: (4.5 + (idx * 0.1)).toFixed(1),
-    avatar: vet.name.split(" ").map(n => n[0]).join(""),
-  }));
+  // Nama dokter yang sedang bertugas (ambil dari veterinarians yang status Active)
+  const activeVet = veterinarians.find(v => v.status === "Active");
+  const doctorName = activeVet?.name || "Dr. Sarah Wijaya";
+  const shortDoctorName = doctorName.replace("Dr. ", "");
 
-  // Categories (tetap untuk style)
-  const categories = [
-    { name: "Video Consultation", price: "$13.77", originalPrice: "$14.37", icon: FaVideo, color: "from-[#432C81] to-[#58315A]" },
-    { name: "Chat Consultation", price: "$0.34", originalPrice: "$0.88", icon: FaComment, color: "from-[#FF8989] to-[#ECBB5F]" },
-    { name: "Clinic Visit", price: "$13.88", originalPrice: null, icon: FaMapMarkerAlt, color: "from-[#432C81] to-[#CCC3FF]" },
-  ];
+  // Hitung persentase perubahan (simulasi)
+  const yesterdayAppointments = appointments.filter(a => a.date === getYesterdayDate()).length;
+  const appointmentChange = todayAppointments - yesterdayAppointments;
 
-  const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
-  const dates = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31];
+  // Helper untuk mendapatkan tanggal kemarin
+  function getYesterdayDate() {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return yesterday.toISOString().slice(0, 10);
+  }
 
   if (isLoading) return <LoadingSpinner fullScreen text="Memuat data dashboard..." />;
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Dashboard" subtitle="Selamat datang di Paws & Care Veterinary Clinic" breadcrumb={["Dashboard"]}>
-        <button onClick={() => navigate("/add-appointment")} className="btn-primary inline-flex items-center gap-2 text-sm py-2 px-4 font-inter">
-          <FaUserPlus size={14} /> Janji Temu Baru
-        </button>
-      </PageHeader>
-
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-[#432C81] to-[#58315A] rounded-2xl p-6 text-white">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold font-nunito mb-2">Looking for specialist doctor?</h2>
-            <p className="text-white/80 text-sm font-inter">Upload a Prescription and Tell Us what you Need. We do the Rest!</p>
-            <button className="mt-4 bg-[#ECBB5F] text-[#432C81] px-6 py-2 rounded-xl font-semibold hover:bg-[#FF8989] transition-all font-inter">
-              BOOK NOW
-            </button>
+    <div className="p-5">
+      {/* Header Profile */}
+      <div className="flex justify-between items-start mb-6 flex-wrap gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-primary w-12 h-12 rounded-full flex items-center justify-center">
+              <FaUserMd className="text-white text-xl" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 font-nunito">SELAMAT PAGI, {shortDoctorName.toUpperCase()}!</h1>
+              <p className="text-sm text-gray-500 font-inter">
+                {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                {' - '} {todayAppointments} kunjungan terjadi hari ini
+              </p>
+            </div>
           </div>
-          <div className="bg-white/10 rounded-full p-4">
-            <FaUserMd className="text-5xl text-[#ECBB5F]" />
+        </div>
+        <div className="text-right">
+          <p className="text-sm font-semibold text-gray-800 font-nunito">{doctorName}</p>
+          <p className="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded-full inline-block">Sedang Bertugas</p>
+        </div>
+      </div>
+
+      {/* Grid 2 Kolom */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Kolom Kiri (2/3) */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Card Kunjungan Hari Ini */}
+          <div className="bg-white rounded-xl shadow-sm border border-[#CCC3FF]/30 p-5">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-lg font-bold text-gray-800 font-nunito">KUNJUNGAN HARI INI</h3>
+                <p className="text-3xl font-bold text-[#432C81] font-nunito">{todayAppointments}</p>
+                <p className={`text-sm ${appointmentChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {appointmentChange >= 0 ? `+${appointmentChange}` : appointmentChange} dari kemarin
+                </p>
+              </div>
+              <div className="bg-[#F5F3FF] rounded-lg p-3">
+                <FaCalendarCheck className="text-[#432C81] text-2xl" />
+              </div>
+            </div>
+          </div>
+
+          {/* Grafik Kunjungan Bulanan */}
+          <div className="bg-white rounded-xl shadow-sm border border-[#CCC3FF]/30 p-5">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 font-nunito">Kunjungan Bulanan {new Date().getFullYear()}</h3>
+            <div className="flex items-end gap-2 h-48">
+              {monthlyVisits.slice(0, 6).map((value, idx) => (
+                <div key={idx} className="flex-1 flex flex-col items-center">
+                  <div 
+                    className="w-full bg-gradient-to-t from-[#432C81] to-[#58315A] rounded-t-lg transition-all hover:opacity-80"
+                    style={{ height: `${(value / maxVisit) * 120}px`, minHeight: value > 0 ? '4px' : '0' }}
+                  ></div>
+                  <p className="text-xs text-gray-500 mt-2 font-inter">{months[idx]}</p>
+                  <p className="text-xs font-bold text-gray-700">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Pasien Sering Berkunjung */}
+          <div className="bg-white rounded-xl shadow-sm border border-[#CCC3FF]/30 p-5">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 font-nunito">PASIEN SERING BERKUNJUNG</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {petTypes.map((type, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className={`${type.color} p-2 rounded-full`}>
+                    <type.icon className="text-sm" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800">{type.name}</p>
+                    <p className="text-xs text-gray-500">{type.count} pasien</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Kolom Kanan (1/3) */}
+        <div className="space-y-6">
+          
+          {/* Profil Singkat */}
+          <div className="bg-gradient-primary rounded-xl p-5 text-white">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-white/20 rounded-full p-3">
+                <FaPaw className="text-2xl" />
+              </div>
+              <div>
+                <p className="font-semibold font-nunito">Paws & Care</p>
+                <p className="text-xs opacity-80">ADMIN PANEL</p>
+              </div>
+            </div>
+            <p className="text-sm font-semibold">{doctorName}</p>
+            <p className="text-xs opacity-80">Sedang Bertugas</p>
+          </div>
+
+          {/* Status Pasien */}
+          <div className="bg-white rounded-xl shadow-sm border border-[#CCC3FF]/30 p-5">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 font-nunito">STATUS</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <FaCheckCircle className="text-green-500" />
+                  <span className="text-sm font-inter">Selesai</span>
+                </div>
+                <span className="font-bold text-gray-800">{statusCounts.completed}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <FaSpinner className="text-yellow-500 animate-spin" />
+                  <span className="text-sm font-inter">Proses</span>
+                </div>
+                <span className="font-bold text-gray-800">{statusCounts.inProgress}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <FaHourglassHalf className="text-blue-500" />
+                  <span className="text-sm font-inter">Antri</span>
+                </div>
+                <span className="font-bold text-gray-800">{statusCounts.queue}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Total Pasien Aktif */}
+          <div className="bg-white rounded-xl shadow-sm border border-[#CCC3FF]/30 p-5 text-center">
+            <FaHeartbeat className="text-[#432C81] text-3xl mx-auto mb-2" />
+            <p className="text-3xl font-bold text-gray-800 font-nunito">{totalPets}</p>
+            <p className="text-sm text-gray-500 font-inter">TOTAL PASIEN AKTIF</p>
+            <p className="text-xs text-green-600 mt-1">+{pets.filter(p => new Date(p.lastVisit) > new Date(Date.now() - 30*24*60*60*1000)).length} bulan ini</p>
+          </div>
+
+          {/* Antrian */}
+          <div className="bg-gradient-to-r from-[#FF8989] to-[#ECBB5F] rounded-xl p-4 text-white text-center">
+            <p className="text-2xl font-bold">{scheduledAppointments}</p>
+            <p className="text-sm font-inter">antrian</p>
           </div>
         </div>
       </div>
 
-      {/* Categories */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {categories.map((cat, idx) => (
-          <div key={idx} className="bg-white rounded-xl p-4 shadow-sm border border-[#CCC3FF]/30 hover:shadow-md transition-all cursor-pointer group">
-            <div className="flex items-center gap-3">
-              <div className={`bg-gradient-to-r ${cat.color} w-12 h-12 rounded-xl flex items-center justify-center text-white`}>
-                <cat.icon className="text-xl" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-800 font-nunito">{cat.name}</h3>
-                <p className="text-sm font-inter">
-                  <span className="text-[#432C81] font-bold">{cat.price}</span>
-                  {cat.originalPrice && <span className="text-gray-400 line-through ml-1 text-xs">{cat.originalPrice}</span>}
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Top Doctors & Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Jadwal Hari Ini & Kunjungan Terbaru - Full Width */}
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Top Doctors - Data dari Veterinarians Paws & Care */}
-        <div className="lg:col-span-2 bg-white rounded-xl p-5 shadow-sm border border-[#CCC3FF]/30">
-          <h3 className="font-bold text-lg text-[#432C81] mb-4 font-nunito">Top Doctor's</h3>
+        {/* Jadwal Hari Ini (List) */}
+        <div className="bg-white rounded-xl shadow-sm border border-[#CCC3FF]/30 p-5">
+          <h3 className="text-lg font-bold text-gray-800 mb-4 font-nunito">JADWAL HARI INI</h3>
           <div className="space-y-3">
-            {topDoctors.map((doctor, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-[#CCC3FF]/20 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="bg-gradient-primary w-10 h-10 rounded-full flex items-center justify-center text-white font-bold font-nunito">
-                    {doctor.avatar}
+            {todayScheduleList.length > 0 ? (
+              todayScheduleList.map((item) => (
+                <div key={item.id} className="flex items-start gap-3 p-3 border-b border-gray-100 last:border-0">
+                  <div className={`p-2 rounded-full ${
+                    item.status === "Completed" ? "bg-green-100" : 
+                    item.status === "In Progress" ? "bg-yellow-100" : "bg-blue-100"
+                  }`}>
+                    <FaHeartbeat className={`text-sm ${
+                      item.status === "Completed" ? "text-green-600" : 
+                      item.status === "In Progress" ? "text-yellow-600" : "text-blue-600"
+                    }`} />
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-800 font-nunito">{doctor.name}</p>
-                    <p className="text-xs text-gray-500 font-inter">{doctor.specialty}</p>
-                    <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5 font-inter">
-                      <FaMapMarkerAlt size={10} /> {doctor.location}
-                      <FaCalendarAlt size={10} /> {doctor.date}
-                      <FaClock size={10} /> {doctor.time}
-                    </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-800">{item.petName}</p>
+                    <p className="text-xs text-gray-500">{item.symptoms || "Pemeriksaan rutin"} - {item.ownerName}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                      item.status === "Completed" ? "bg-green-100 text-green-600" : 
+                      item.status === "In Progress" ? "bg-yellow-100 text-yellow-600" : "bg-blue-100 text-blue-600"
+                    }`}>
+                      {item.status === "Completed" ? "Selesai" : 
+                       item.status === "In Progress" ? "Proses" : "Antri"}
+                    </span>
+                    <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><FaClock size={10} /> {item.time}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 bg-yellow-100 px-2 py-1 rounded-lg">
-                    <FaStar className="text-yellow-500 text-xs" />
-                    <span className="text-xs font-semibold font-inter">{doctor.rating}</span>
-                  </div>
-                  <button className="bg-[#432C81] text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#58315A] transition-all font-inter">
-                    Book
-                  </button>
+              ))
+            ) : (
+              <p className="text-gray-500 text-center py-4">Tidak ada jadwal untuk hari ini</p>
+            )}
+          </div>
+        </div>
+
+        {/* Kunjungan Terbaru */}
+        <div className="bg-white rounded-xl shadow-sm border border-[#CCC3FF]/30 p-5">
+          <h3 className="text-lg font-bold text-gray-800 mb-4 font-nunito">KUNJUNGAN TERBARU</h3>
+          <div className="space-y-3">
+            {recentVisits.map((visit) => (
+              <div key={visit.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="bg-[#CCC3FF]/30 p-2 rounded-full">
+                  <FaPaw className="text-[#432C81]" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">{visit.petName}</p>
+                  <p className="text-xs text-gray-500">{visit.petType} - {visit.veterinarian}</p>
+                </div>
+                <div className="ml-auto text-right">
+                  <p className="text-xs text-gray-400">{visit.date}</p>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                    visit.status === "Completed" ? "bg-green-100 text-green-600" : 
+                    visit.status === "In Progress" ? "bg-yellow-100 text-yellow-600" : "bg-blue-100 text-blue-600"
+                  }`}>
+                    {visit.status === "Completed" ? "Selesai" : 
+                     visit.status === "In Progress" ? "Proses" : "Dijadwalkan"}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
         </div>
-
-        {/* Stats & Calendar */}
-        <div className="space-y-5">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-[#CCC3FF]/30">
-              <FaPaw className="text-[#432C81] text-xl mx-auto mb-1" />
-              <p className="text-2xl font-bold text-[#432C81] font-nunito">{totalPets}</p>
-              <p className="text-xs text-gray-500 font-inter">Total Pasien</p>
-            </div>
-            <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-[#CCC3FF]/30">
-              <FaUsers className="text-[#432C81] text-xl mx-auto mb-1" />
-              <p className="text-2xl font-bold text-[#432C81] font-nunito">{totalOwners}</p>
-              <p className="text-xs text-gray-500 font-inter">Pemilik</p>
-            </div>
-            <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-[#CCC3FF]/30">
-              <FaCalendarCheck className="text-[#432C81] text-xl mx-auto mb-1" />
-              <p className="text-2xl font-bold text-[#432C81] font-nunito">{todayAppointments}</p>
-              <p className="text-xs text-gray-500 font-inter">Hari Ini</p>
-            </div>
-            <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-[#CCC3FF]/30">
-              <FaSyringe className="text-[#432C81] text-xl mx-auto mb-1" />
-              <p className="text-2xl font-bold text-[#432C81] font-nunito">{appointments.length}</p>
-              <p className="text-xs text-gray-500 font-inter">Total Janji</p>
-            </div>
-          </div>
-
-          {/* Calendar */}
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-[#CCC3FF]/30">
-            <h3 className="font-semibold text-gray-800 mb-3 font-nunito">Calendar</h3>
-            <div className="grid grid-cols-7 gap-1 text-center text-xs">
-              {days.map(day => (
-                <div key={day} className="font-semibold text-[#432C81] py-1 font-inter">{day}</div>
-              ))}
-              {dates.map(date => (
-                <div key={date} className={`py-1 rounded-lg cursor-pointer hover:bg-[#CCC3FF]/30 transition-all font-inter ${date === 24 ? 'bg-[#432C81] text-white' : ''}`}>
-                  {date}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Available Appointment */}
-          <div className="bg-gradient-to-r from-[#FF8989] to-[#ECBB5F] rounded-xl p-4 text-white">
-            <div className="flex items-center gap-3">
-              <FaUserMd className="text-3xl" />
-              <div>
-                <p className="font-semibold font-nunito">Dr. Samantha</p>
-                <p className="text-xs opacity-90 font-inter">Cardiologist</p>
-                <p className="text-xs mt-1 font-inter">19 June 2021, 02:00 pm</p>
-              </div>
-            </div>
-            <button className="w-full mt-3 bg-white/20 hover:bg-white/30 rounded-lg py-2 text-sm font-semibold transition-all font-inter">
-              Available Appointment
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <QuickActionCard 
-          title="Quick Checkup" 
-          description="Mulai pemeriksaan pasien baru" 
-          buttonText="Begin Checkup" 
-          icon={FaHeartbeat} 
-          onClick={() => navigate("/add-pet")} 
-        />
-        <QuickActionCard 
-          title="Clinic Occupancy" 
-          description={`${scheduledAppointments ? Math.round((todayAppointments/scheduledAppointments)*100) : 0}% tingkat keterisian klinik`} 
-          buttonText="View Details" 
-          icon={FaChartLine} 
-          onClick={() => navigate("/appointments")} 
-        />
       </div>
     </div>
   );
