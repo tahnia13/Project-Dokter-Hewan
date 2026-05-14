@@ -87,7 +87,7 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
             )}
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-gray-800 font-nunito">Dr. Tahnia Siti Aisah</p>
+            <p className="text-sm font-semibold text-gray-800 font-nunito">Dr. Sarah Wijaya</p>
             <p className="text-[10px] text-gray-500 font-inter">Dokter Hewan</p>
           </div>
         </div>
