@@ -18,16 +18,19 @@ export default function MainLayout() {
         <Sidebar isCollapsed={isSidebarCollapsed} onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
       </div>
 
-      <div className={`transition-all duration-300 ease-in-out ${!isSidebarCollapsed ? "lg:ml-80" : "lg:ml-20"}`}>
+      {/* TAMBAHKAN flex flex-col min-h-screen DI SINI */}
+      <div className={`flex flex-col min-h-screen transition-all duration-300 ease-in-out ${!isSidebarCollapsed ? "lg:ml-80" : "lg:ml-20"}`}>
+        
         <Header onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
         
-        <main className="p-6">
+        {/* TAMBAHKAN flex-1 AGAR MAIN CONTENT MENGISI SISA RUANG */}
+        <main className="flex-1 p-6">
           <div className="w-full">
             <Outlet />
           </div>
         </main>
         
-        <footer className="bg-white/50 backdrop-blur-sm border-t border-[#CCC3FF]/30 py-4 px-6 mt-8 text-center">
+        <footer className="bg-white/50 backdrop-blur-sm border-t border-[#CCC3FF]/30 py-4 px-6 text-center">
           <p className="text-xs text-gray-400 font-inter">© 2026 Paws & Care Veterinary Clinic. All rights reserved.</p>
           <p className="text-[10px] text-gray-400 mt-1 font-inter">Caring for your beloved pets with love and expertise</p>
         </footer>
