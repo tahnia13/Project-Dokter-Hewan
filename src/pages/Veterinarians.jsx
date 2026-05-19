@@ -2,7 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaSearch, FaPlus, FaUserMd, FaPhone, FaEnvelope, FaCalendarAlt, FaIdCard, FaEdit, FaTrash, FaEye, FaStethoscope } from "react-icons/fa";
 import PageHeader from "../components/PageHeader";
-import LoadingSpinner from "../components/LoadingSpinner";
+import Button from "./Components/Button";
+import Badge from "./Components/Badge";
+import Table from "./Components/Table";
+import InputField from "./Components/InputField";
+import Card from "./Components/Card";
+import Container from "./Components/Container";
+import Modal from "./Components/Modal";
+import Toast from "./Components/Toast";
+import Loading from "./Components/Loading";
 import { initialVeterinarians } from "../data/clinicData";
 
 export default function Veterinarians() {
@@ -10,7 +18,10 @@ export default function Veterinarians() {
   const [searchTerm, setSearchTerm] = useState("");
   const [veterinarians, setVeterinarians] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedVet, setSelectedVet] = useState(null);
 
   useEffect(() => {
     setTimeout(() => {
@@ -19,22 +30,19 @@ export default function Veterinarians() {
     }, 500);
   }, []);
 
-  const getStatusColor = (status) => {
-    return status === "Active" 
-      ? "bg-green-100 text-green-600 border-green-200" 
-      : "bg-yellow-100 text-yellow-600 border-yellow-200";
-  };
-
   const handleDelete = (id, name) => {
     if (window.confirm(`Hapus dokter "${name}"?`)) {
-      setIsDeleting(true);
-      setTimeout(() => {
-        const newVets = veterinarians.filter(v => v.id !== id);
-        setVeterinarians(newVets);
-        setIsDeleting(false);
-        alert(`✅ Dokter ${name} berhasil dihapus!`);
-      }, 500);
+      const newVets = veterinarians.filter(v => v.id !== id);
+      setVeterinarians(newVets);
+      setToastMessage(`✅ Dokter ${name} berhasil dihapus!`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     }
+  };
+
+  const handleViewDetail = (vet) => {
+    setSelectedVet(vet);
+    setIsModalOpen(true);
   };
 
   const filtered = veterinarians.filter(v => 
@@ -43,129 +51,133 @@ export default function Veterinarians() {
     v.license.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (isLoading) return <LoadingSpinner fullScreen text="Memuat data dokter..." />;
-  if (isDeleting) return <LoadingSpinner fullScreen text="Menghapus data dokter..." />;
+  const headers = ["ID", "Nama Dokter", "Spesialisasi", "Kontak", "STR", "Status", "Aksi"];
+
+  const getStatusBadge = (status) => {
+    return status === "Active" ? <Badge type="success">Aktif</Badge> : <Badge type="warning">Cuti</Badge>;
+  };
+
+  if (isLoading) return <Loading fullScreen text="Memuat data dokter..." />;
 
   return (
     <div id="veterinarians-page">
       <PageHeader title="Dokter Hewan" breadcrumb={["Dashboard", "Veterinarian List"]}>
-        <button 
-          onClick={() => navigate("/add-veterinarian")} 
-          className="bg-gradient-primary text-white px-6 py-2 rounded-lg hover:shadow-md transition-all active:scale-95 flex items-center gap-2 font-inter"
-        >
+        <Button type="primary" onClick={() => navigate("/add-veterinarian")}>
           <FaPlus size={14} /> Tambah Dokter
-        </button>
+        </Button>
       </PageHeader>
 
-      <div className="p-5">
-        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-[#CCC3FF]/30">
-          
-          <div className="p-6 border-b border-[#CCC3FF]/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-[#432C81] font-nunito">Daftar Dokter Hewan</h2>
-              <p className="text-gray-400 text-sm font-inter">Kelola tenaga medis profesional</p>
-            </div>
-            <div className="relative w-full md:w-80">
-              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Cari nama, spesialisasi, atau STR..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-[#CCC3FF] rounded-xl focus:ring-2 focus:ring-[#432C81] outline-none transition-all font-inter"
-              />
-            </div>
-          </div>
+      <Container>
+        {/* Card Search */}
+        <Card title="Cari Dokter">
+          <InputField 
+            label="" 
+            name="search" 
+            placeholder="Cari nama, spesialisasi, atau STR..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            icon={FaSearch}
+          />
+        </Card>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-[#F5F3FF] text-gray-600 text-sm uppercase border-b border-[#CCC3FF]/30">
-                <tr>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">ID</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Nama Dokter</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Spesialisasi</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Kontak</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">STR</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Status</th>
-                  <th className="p-4 font-bold text-center text-[#432C81] font-nunito">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#CCC3FF]/20">
-                {filtered.map((vet) => (
-                  <tr key={vet.id} className="hover:bg-[#F5F3FF] transition-colors">
-                    <td className="p-4 text-[#432C81] font-mono font-bold text-sm">
-                      {vet.id}
-                    </td>
-                    <td className="p-4">
-                      <Link to={`/veterinarians/${vet.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <div className="bg-[#CCC3FF]/30 p-2 rounded-lg">
-                          <FaUserMd className="text-[#432C81]" />
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-800 hover:text-[#432C81] transition-colors">{vet.name}</span>
-                          <span className="text-gray-400 text-xs block">Bergabung: {vet.joinDate}</span>
-                        </div>
+        {/* Table Data Display */}
+        <div className="mt-6">
+          <Card title="Daftar Dokter Hewan">
+            <Table headers={headers}>
+              {filtered.map((vet) => (
+                <tr key={vet.id} className="hover:bg-[#F5F3FF] transition-colors cursor-pointer" onClick={() => handleViewDetail(vet)}>
+                  <td className="p-4 text-[#432C81] font-mono font-bold text-sm">{vet.id}</td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-[#CCC3FF]/30 p-2 rounded-lg">
+                        <FaUserMd className="text-[#432C81]" />
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-800">{vet.name}</span>
+                        <span className="text-gray-400 text-xs block">Bergabung: {vet.joinDate}</span>
+                      </div>
+                    </div>
+                   </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-1">
+                      <FaStethoscope size={12} className="text-[#432C81]" />
+                      <span className="text-sm text-gray-700">{vet.specialization}</span>
+                    </div>
+                   </td>
+                  <td className="p-4">
+                    <div className="text-sm text-gray-700">{vet.phone}</div>
+                    <div className="text-gray-400 text-xs truncate max-w-[150px]">{vet.email}</div>
+                   </td>
+                  <td className="p-4">
+                    <span className="font-mono text-sm text-gray-600">{vet.license}</span>
+                   </td>
+                  <td className="p-4">
+                    {getStatusBadge(vet.status)}
+                   </td>
+                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex justify-center gap-3">
+                      <Link to={`/veterinarians/${vet.id}`} className="text-blue-500 hover:text-blue-700" title="Detail">
+                        <FaEye size={18} />
                       </Link>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-1 text-sm text-gray-700">
-                        <FaStethoscope size={12} className="text-[#432C81]" />
-                        <span>{vet.specialization}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-sm text-gray-700">{vet.phone}</div>
-                      <div className="text-gray-400 text-xs truncate max-w-[150px]">{vet.email}</div>
-                    </td>
-                    <td className="p-4">
-                      <span className="font-mono text-sm text-gray-600">{vet.license}</span>
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border ${getStatusColor(vet.status)}`}>
-                        {vet.status === "Active" ? "Aktif" : "Cuti"}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex justify-center gap-3">
-                        <Link to={`/veterinarians/${vet.id}`} className="text-blue-500 hover:text-blue-700 transition-colors" title="Detail">
-                          <FaEye size={18} />
-                        </Link>
-                        <button className="text-amber-500 hover:text-amber-700 transition-colors" title="Edit">
-                          <FaEdit size={18} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(vet.id, vet.name)}
-                          className="text-red-500 hover:text-red-700 transition-colors" 
-                          title="Hapus"
-                        >
-                          <FaTrash size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {filtered.length === 0 && (
-            <div className="p-20 text-center">
-              <FaUserMd className="text-[#CCC3FF] text-6xl mx-auto mb-4" />
-              <p className="text-gray-400 font-medium">Tidak ada dokter ditemukan.</p>
-            </div>
-          )}
-
-          <div className="px-6 py-4 border-t border-[#CCC3FF]/30 flex justify-between items-center">
-            <p className="text-sm text-gray-500">Menampilkan {filtered.length} dari {veterinarians.length} dokter</p>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 border border-[#CCC3FF] rounded-lg text-sm text-gray-600 hover:bg-[#F5F3FF]">Previous</button>
-              <button className="px-3 py-1 bg-gradient-primary text-white rounded-lg text-sm shadow-md">1</button>
-              <button className="px-3 py-1 border border-[#CCC3FF] rounded-lg text-sm text-gray-600 hover:bg-[#F5F3FF]">2</button>
-              <button className="px-3 py-1 border border-[#CCC3FF] rounded-lg text-sm text-gray-600 hover:bg-[#F5F3FF]">Next</button>
-            </div>
-          </div>
+                      <button className="text-amber-500 hover:text-amber-700" title="Edit">
+                        <FaEdit size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(vet.id, vet.name)}
+                        className="text-red-500 hover:text-red-700" 
+                        title="Hapus"
+                      >
+                        <FaTrash size={18} />
+                      </button>
+                    </div>
+                   </td>
+                 </tr>
+              ))}
+            </Table>
+          </Card>
         </div>
-      </div>
+
+        {/* Statistik Card */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+          <Card title="Total Dokter" className="text-center">
+            <p className="text-3xl font-bold text-[#432C81]">{veterinarians.length}</p>
+            <p className="text-sm text-gray-500">dokter terdaftar</p>
+          </Card>
+          <Card title="Dokter Aktif" className="text-center">
+            <p className="text-3xl font-bold text-green-600">{veterinarians.filter(v => v.status === "Active").length}</p>
+            <p className="text-sm text-gray-500">sedang bertugas</p>
+          </Card>
+          <Card title="Spesialisasi" className="text-center">
+            <div className="flex flex-wrap justify-center gap-2">
+              {[...new Set(veterinarians.map(v => v.specialization))].map((spec, idx) => (
+                <Badge key={idx} type="info">{spec}</Badge>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </Container>
+
+      {/* Modal Detail */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Detail Dokter">
+        {selectedVet && (
+          <div className="space-y-3">
+            <p><strong>ID:</strong> {selectedVet.id}</p>
+            <p><strong>Nama:</strong> {selectedVet.name}</p>
+            <p><strong>Spesialisasi:</strong> {selectedVet.specialization}</p>
+            <p><strong>Nomor STR:</strong> {selectedVet.license}</p>
+            <p><strong>Telepon:</strong> {selectedVet.phone}</p>
+            <p><strong>Email:</strong> {selectedVet.email}</p>
+            <p><strong>Bergabung:</strong> {selectedVet.joinDate}</p>
+            <p><strong>Status:</strong> {getStatusBadge(selectedVet.status)}</p>
+            <div className="flex gap-3 mt-4">
+              <Button type="primary" onClick={() => setIsModalOpen(false)} className="flex-1">Tutup</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Toast */}
+      {showToast && <Toast message={toastMessage} type="success" onClose={() => setShowToast(false)} />}
     </div>
   );
 }

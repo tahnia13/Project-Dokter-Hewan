@@ -5,6 +5,7 @@ import AuthLayout from "./layouts/AuthLayout";
 import Loading from "./components/Loading";
 import React, { Suspense } from "react";
 
+
 function App() {
   // Main Pages
   const Dashboard = React.lazy(() => import("./pages/Dashboard"))
@@ -16,6 +17,7 @@ function App() {
   const FormPetOwner = React.lazy(() => import("./pages/FormPetOwner"))
   const Veterinarians = React.lazy(() => import("./pages/Veterinarians"))
   const FormVeterinarian = React.lazy(() => import("./pages/FormVeterinarian"))
+  const ComponentShowcase = React.lazy(() => import("./pages/ComponentShowcase"));
   
   // Detail Pages (Dynamic Route)
   const PetDetail = React.lazy(() => import("./pages/PetDetail"))
@@ -44,6 +46,7 @@ function App() {
           <Route path="/add-pet-owner" element={<FormPetOwner />} />
           <Route path="/veterinarians" element={<Veterinarians />} />
           <Route path="/add-veterinarian" element={<FormVeterinarian />} />
+          <Route path="/showcase" element={<ComponentShowcase />} />
           
           {/* Dynamic Detail Routes */}
           <Route path="/pets/:id" element={<PetDetail />} />

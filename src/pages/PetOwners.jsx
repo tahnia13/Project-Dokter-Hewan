@@ -2,7 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaSearch, FaPlus, FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaPaw, FaEye, FaEdit, FaTrash, FaCalendarAlt } from "react-icons/fa";
 import PageHeader from "../components/PageHeader";
-import LoadingSpinner from "../components/LoadingSpinner";
+import Button from "./Components/Button";
+import Badge from "./Components/Badge";
+import Table from "./Components/Table";
+import InputField from "./Components/InputField";
+import Card from "./Components/Card";
+import Container from "./Components/Container";
+import Modal from "./Components/Modal";
+import Toast from "./Components/Toast";
+import Loading from "./Components/Loading";
 import { initialPetOwners, initialPets } from "../data/clinicData";
 
 export default function PetOwners() {
@@ -10,7 +18,10 @@ export default function PetOwners() {
   const [searchTerm, setSearchTerm] = useState("");
   const [owners, setOwners] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedOwner, setSelectedOwner] = useState(null);
   const pets = initialPets;
 
   useEffect(() => {
@@ -21,19 +32,27 @@ export default function PetOwners() {
   }, []);
 
   const getOwnerPets = (ownerId) => {
-    return pets.filter(pet => pet.ownerId === ownerId).map(pet => `${pet.name} (${pet.type})`).join(", ");
+    const ownerPets = pets.filter(pet => pet.ownerId === ownerId);
+    return ownerPets.map(pet => `${pet.name} (${pet.type})`).join(", ");
+  };
+
+  const getPetCount = (ownerId) => {
+    return pets.filter(pet => pet.ownerId === ownerId).length;
   };
 
   const handleDelete = (id, name) => {
     if (window.confirm(`Hapus pemilik "${name}"?`)) {
-      setIsDeleting(true);
-      setTimeout(() => {
-        const newOwners = owners.filter(o => o.id !== id);
-        setOwners(newOwners);
-        setIsDeleting(false);
-        alert(`✅ Pemilik ${name} berhasil dihapus!`);
-      }, 500);
+      const newOwners = owners.filter(o => o.id !== id);
+      setOwners(newOwners);
+      setToastMessage(`✅ Pemilik ${name} berhasil dihapus!`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     }
+  };
+
+  const handleViewDetail = (owner) => {
+    setSelectedOwner(owner);
+    setIsModalOpen(true);
   };
 
   const filteredOwners = owners.filter(owner => 
@@ -42,132 +61,129 @@ export default function PetOwners() {
     owner.phone.includes(searchTerm)
   );
 
-  if (isLoading) return <LoadingSpinner fullScreen text="Memuat data pemilik..." />;
-  if (isDeleting) return <LoadingSpinner fullScreen text="Menghapus data pemilik..." />;
+  const headers = ["ID", "Nama Pemilik", "Kontak", "Alamat", "Hewan", "Kunjungan", "Aksi"];
+
+  if (isLoading) return <Loading fullScreen text="Memuat data pemilik..." />;
 
   return (
     <div id="petowners-page">
       <PageHeader title="Pemilik Hewan" breadcrumb={["Dashboard", "Pet Owner List"]}>
-        <button 
-          onClick={() => navigate("/add-pet-owner")} 
-          className="bg-gradient-primary text-white px-6 py-2 rounded-lg hover:shadow-md transition-all active:scale-95 flex items-center gap-2 font-inter"
-        >
+        <Button type="primary" onClick={() => navigate("/add-pet-owner")}>
           <FaPlus size={14} /> Tambah Pemilik
-        </button>
+        </Button>
       </PageHeader>
 
-      <div className="p-5">
-        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-[#CCC3FF]/30">
-          
-          <div className="p-6 border-b border-[#CCC3FF]/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-[#432C81] font-nunito">Daftar Pemilik Hewan</h2>
-              <p className="text-gray-400 text-sm font-inter">Kelola data pemilik dan riwayat kunjungan</p>
-            </div>
-            <div className="relative w-full md:w-80">
-              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Cari nama, email, atau telepon..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-[#CCC3FF] rounded-xl focus:ring-2 focus:ring-[#432C81] outline-none transition-all font-inter"
-              />
-            </div>
-          </div>
+      <Container>
+        {/* Card Search */}
+        <Card title="Cari Pemilik">
+          <InputField 
+            label="" 
+            name="search" 
+            placeholder="Cari nama, email, atau telepon..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            icon={FaSearch}
+          />
+        </Card>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-[#F5F3FF] text-gray-600 text-sm uppercase border-b border-[#CCC3FF]/30">
-                <tr>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">ID</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Nama Pemilik</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Kontak</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Alamat</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Hewan</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Kunjungan</th>
-                  <th className="p-4 font-bold text-center text-[#432C81] font-nunito">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#CCC3FF]/20">
-                {filteredOwners.map((owner) => (
-                  <tr key={owner.id} className="hover:bg-[#F5F3FF] transition-colors">
-                    <td className="p-4 text-[#432C81] font-mono font-bold text-sm">
-                      {owner.id}
-                    </td>
-                    <td className="p-4">
-                      <Link to={`/pet-owners/${owner.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <div className="bg-[#CCC3FF]/30 p-2 rounded-lg">
-                          <FaUser className="text-[#432C81]" />
-                        </div>
-                        <div>
-                          <span className="font-medium text-slate-700 hover:text-[#432C81] transition-colors">{owner.name}</span>
-                          <span className="text-gray-400 text-xs block">Bergabung: {owner.joinDate}</span>
-                        </div>
+        {/* Table Data Display */}
+        <div className="mt-6">
+          <Card title="Daftar Pemilik Hewan">
+            <Table headers={headers}>
+              {filteredOwners.map((owner) => (
+                <tr key={owner.id} className="hover:bg-[#F5F3FF] transition-colors cursor-pointer" onClick={() => handleViewDetail(owner)}>
+                  <td className="p-4 text-[#432C81] font-mono font-bold text-sm">{owner.id}</td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-[#CCC3FF]/30 p-2 rounded-lg">
+                        <FaUser className="text-[#432C81]" />
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-800">{owner.name}</span>
+                        <span className="text-gray-400 text-xs block">Bergabung: {owner.joinDate}</span>
+                      </div>
+                    </div>
+                   </td>
+                  <td className="p-4">
+                    <div className="text-sm text-gray-700">{owner.phone}</div>
+                    <div className="text-gray-400 text-xs">{owner.email}</div>
+                   </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <FaMapMarkerAlt size={12} className="text-gray-400" />
+                      <span className="truncate max-w-[180px]">{owner.address}</span>
+                    </div>
+                   </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-1">
+                      <FaPaw size={12} className="text-[#432C81]" />
+                      <span className="text-sm">{getOwnerPets(owner.id) || "-"}</span>
+                    </div>
+                   </td>
+                  <td className="p-4">
+                    <Badge type="info">{owner.totalVisits} Kali</Badge>
+                   </td>
+                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex justify-center gap-3">
+                      <Link to={`/pet-owners/${owner.id}`} className="text-blue-500 hover:text-blue-700" title="Detail">
+                        <FaEye size={18} />
                       </Link>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-sm text-gray-700">{owner.phone}</div>
-                      <div className="text-gray-400 text-xs">{owner.email}</div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <FaMapMarkerAlt size={12} className="text-gray-400" />
-                        <span className="truncate max-w-[200px]">{owner.address}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-1 text-sm text-gray-700">
-                        <FaPaw size={12} className="text-[#432C81]" />
-                        <span>{getOwnerPets(owner.id) || "-"}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-600 border border-blue-200">
-                        {owner.totalVisits} Kali
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex justify-center gap-3">
-                        <Link to={`/pet-owners/${owner.id}`} className="text-blue-500 hover:text-blue-700 transition-colors" title="Detail">
-                          <FaEye size={18} />
-                        </Link>
-                        <button className="text-amber-500 hover:text-amber-700 transition-colors" title="Edit">
-                          <FaEdit size={18} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(owner.id, owner.name)}
-                          className="text-red-500 hover:text-red-700 transition-colors" 
-                          title="Hapus"
-                        >
-                          <FaTrash size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {filteredOwners.length === 0 && (
-            <div className="p-20 text-center">
-              <FaUser className="text-[#CCC3FF] text-6xl mx-auto mb-4" />
-              <p className="text-gray-400 font-medium">Tidak ada data pemilik ditemukan.</p>
-            </div>
-          )}
-
-          <div className="px-6 py-4 border-t border-[#CCC3FF]/30 flex justify-between items-center">
-            <p className="text-sm text-gray-500">Menampilkan {filteredOwners.length} dari {owners.length} pemilik</p>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 border border-[#CCC3FF] rounded-lg text-sm text-gray-600 hover:bg-[#F5F3FF]">Previous</button>
-              <button className="px-3 py-1 bg-gradient-primary text-white rounded-lg text-sm shadow-md">1</button>
-              <button className="px-3 py-1 border border-[#CCC3FF] rounded-lg text-sm text-gray-600 hover:bg-[#F5F3FF]">2</button>
-              <button className="px-3 py-1 border border-[#CCC3FF] rounded-lg text-sm text-gray-600 hover:bg-[#F5F3FF]">Next</button>
-            </div>
-          </div>
+                      <button className="text-amber-500 hover:text-amber-700" title="Edit">
+                        <FaEdit size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(owner.id, owner.name)}
+                        className="text-red-500 hover:text-red-700" 
+                        title="Hapus"
+                      >
+                        <FaTrash size={18} />
+                      </button>
+                    </div>
+                   </td>
+                 </tr>
+              ))}
+            </Table>
+          </Card>
         </div>
-      </div>
+
+        {/* Statistik Card */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+          <Card title="Total Pemilik" className="text-center">
+            <p className="text-3xl font-bold text-[#432C81]">{owners.length}</p>
+            <p className="text-sm text-gray-500">pemilik terdaftar</p>
+          </Card>
+          <Card title="Total Hewan" className="text-center">
+            <p className="text-3xl font-bold text-[#432C81]">{pets.length}</p>
+            <p className="text-sm text-gray-500">hewan peliharaan</p>
+          </Card>
+          <Card title="Rata-rata Hewan/Pemilik" className="text-center">
+            <p className="text-3xl font-bold text-[#432C81]">{(pets.length / owners.length).toFixed(1)}</p>
+            <p className="text-sm text-gray-500">hewan per pemilik</p>
+          </Card>
+        </div>
+      </Container>
+
+      {/* Modal Detail */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Detail Pemilik">
+        {selectedOwner && (
+          <div className="space-y-3">
+            <p><strong>ID:</strong> {selectedOwner.id}</p>
+            <p><strong>Nama:</strong> {selectedOwner.name}</p>
+            <p><strong>Telepon:</strong> {selectedOwner.phone}</p>
+            <p><strong>Email:</strong> {selectedOwner.email}</p>
+            <p><strong>Alamat:</strong> {selectedOwner.address}</p>
+            <p><strong>Bergabung:</strong> {selectedOwner.joinDate}</p>
+            <p><strong>Total Kunjungan:</strong> <Badge type="info">{selectedOwner.totalVisits} Kali</Badge></p>
+            <p><strong>Hewan:</strong> {getOwnerPets(selectedOwner.id) || "-"}</p>
+            <div className="flex gap-3 mt-4">
+              <Button type="primary" onClick={() => setIsModalOpen(false)} className="flex-1">Tutup</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Toast */}
+      {showToast && <Toast message={toastMessage} type="success" onClose={() => setShowToast(false)} />}
     </div>
   );
 }

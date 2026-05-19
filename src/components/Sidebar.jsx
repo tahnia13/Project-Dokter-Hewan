@@ -9,7 +9,8 @@ import {
   FaChevronLeft, 
   FaChevronRight,
   FaClinicMedical,
-  FaPlus
+  FaPlus,
+  FaCube
 } from "react-icons/fa";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -113,6 +114,12 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
           ))}
         </ul>
       </div>
+      <li>
+  <NavLink to="/showcase" className={menuClass}>
+    <FaCube className="text-xl" />
+    <span>Showcase</span>
+  </NavLink>
+</li>
 
       {/* Footer - Style DocSwift */}
       <div className="p-4 border-t border-[#CCC3FF]/30">

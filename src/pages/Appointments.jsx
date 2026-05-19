@@ -2,7 +2,18 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaSearch, FaCalendarPlus, FaEye, FaEdit, FaTrash, FaPaw, FaClock, FaUserMd, FaFilter } from "react-icons/fa";
 import PageHeader from "../components/PageHeader";
-import LoadingSpinner from "../components/LoadingSpinner";
+import Button from "./Components/Button";
+import Badge from "./Components/Badge";
+import Table from "./Components/Table";
+import InputField from "./Components/InputField";
+import SelectField from "./Components/SelectField";
+import TextArea from "./Components/TextArea";  // ← TAMBAHKAN INI
+import Alert from "./Components/Alert";
+import Modal from "./Components/Modal";
+import Toast from "./Components/Toast";
+import Loading from "./Components/Loading";
+import Container from "./Components/Container";
+import Card from "./Components/Card";
 import { initialAppointments, initialPets, initialPetOwners, getOwnerName, getOwnerPhone } from "../data/clinicData";
 
 export default function Appointments() {
@@ -11,7 +22,14 @@ export default function Appointments() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [appointments, setAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [formData, setFormData] = useState({ petId: "", veterinarian: "", date: "", time: "", symptoms: "" });
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  
   const pets = initialPets;
   const owners = initialPetOwners;
 
@@ -32,26 +50,46 @@ export default function Appointments() {
     return pet ? pet.type : "Unknown";
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      Scheduled: "bg-[#CCC3FF]/50 text-[#432C81] border-[#432C81]/20",
-      Completed: "bg-green-100 text-green-600 border-green-200",
-      "In Progress": "bg-yellow-100 text-yellow-600 border-yellow-200",
-      Cancelled: "bg-red-100 text-red-600 border-red-200"
-    };
-    return colors[status] || "bg-gray-100 text-gray-600 border-gray-200";
+  const handleDelete = (id, petName) => {
+    if (window.confirm(`Hapus janji temu untuk "${petName}"?`)) {
+      const newAppointments = appointments.filter(a => a.id !== id);
+      setAppointments(newAppointments);
+      setToastMessage(`✅ Janji temu untuk ${petName} berhasil dihapus!`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm(`Hapus janji temu ini?`)) {
-      setIsDeleting(true);
-      setTimeout(() => {
-        const newAppointments = appointments.filter(a => a.id !== id);
-        setAppointments(newAppointments);
-        setIsDeleting(false);
-        alert(`✅ Janji temu berhasil dihapus!`);
-      }, 500);
-    }
+  const handleViewDetail = (apt) => {
+    setSelectedAppointment(apt);
+    setIsModalOpen(true);
+  };
+
+  const handleAddAppointment = () => {
+    setIsFormModalOpen(true);
+  };
+
+  const handleFormChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmitAppointment = (e) => {
+    e.preventDefault();
+    const newId = `APT-${String(appointments.length + 1).padStart(3, "0")}`;
+    const newAppointment = {
+      id: newId,
+      petId: formData.petId,
+      veterinarian: formData.veterinarian,
+      date: formData.date,
+      time: formData.time,
+      status: "Scheduled",
+      symptoms: formData.symptoms
+    };
+    setAppointments([...appointments, newAppointment]);
+    setShowAlert(true);
+    setFormData({ petId: "", veterinarian: "", date: "", time: "", symptoms: "" });
+    setIsFormModalOpen(false);
+    setTimeout(() => setShowAlert(false), 3000);
   };
 
   const filtered = appointments.filter(a => 
@@ -60,148 +98,141 @@ export default function Appointments() {
     (filterStatus === "all" || a.status === filterStatus)
   );
 
-  if (isLoading) return <LoadingSpinner fullScreen text="Memuat data janji temu..." />;
-  if (isDeleting) return <LoadingSpinner fullScreen text="Menghapus data janji temu..." />;
+  const headers = ["ID", "Hewan", "Pemilik", "Dokter", "Tanggal & Waktu", "Status", "Aksi"];
+  
+  const statusOptions = [
+    { value: "all", label: "Semua Status" },
+    { value: "Scheduled", label: "Dijadwalkan" },
+    { value: "In Progress", label: "Berlangsung" },
+    { value: "Completed", label: "Selesai" },
+    { value: "Cancelled", label: "Dibatalkan" }
+  ];
+
+  const petOptions = pets.map(pet => ({ value: pet.id, label: `${pet.name} (${pet.type} - ${pet.breed})` }));
+  const veterinarianOptions = [
+    { value: "Dr. Sarah Wijaya", label: "Dr. Sarah Wijaya" },
+    { value: "Dr. Budi Santoso", label: "Dr. Budi Santoso" },
+    { value: "Dr. Anita Permata", label: "Dr. Anita Permata" },
+  ];
+  const timeOptions = [
+    { value: "09:00", label: "09:00" },
+    { value: "10:30", label: "10:30" },
+    { value: "13:00", label: "13:00" },
+    { value: "14:30", label: "14:30" },
+  ];
+
+  const getBadgeType = (status) => {
+    if (status === "Completed") return "success";
+    if (status === "Cancelled") return "danger";
+    if (status === "In Progress") return "warning";
+    return "primary";
+  };
+
+  if (isLoading) return <Loading fullScreen text="Memuat data janji temu..." />;
 
   return (
     <div id="appointments-page">
       <PageHeader title="Janji Temu" breadcrumb={["Dashboard", "Appointment List"]}>
-        <button 
-          onClick={() => navigate("/add-appointment")} 
-          className="bg-gradient-primary text-white px-6 py-2 rounded-lg hover:shadow-md transition-all active:scale-95 flex items-center gap-2 font-inter"
-        >
+        <Button type="primary" onClick={handleAddAppointment}>
           <FaCalendarPlus size={14} /> Janji Temu Baru
-        </button>
+        </Button>
       </PageHeader>
 
-      <div className="p-5">
-        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-[#CCC3FF]/30">
-          
-          <div className="p-6 border-b border-[#CCC3FF]/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-[#432C81] font-nunito">Daftar Janji Temu</h2>
-              <p className="text-gray-400 text-sm font-inter">Kelola jadwal konsultasi pasien</p>
+      <Container>
+        {/* Alert Feedback */}
+        {showAlert && (
+          <Alert type="success" message="Janji temu berhasil ditambahkan!" onClose={() => setShowAlert(false)} />
+        )}
+
+        {/* Card Filter */}
+        <Card title="Filter Data">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <InputField 
+                label="Cari" 
+                name="search" 
+                placeholder="Cari hewan atau pemilik..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                icon={FaSearch}
+              />
             </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative w-full sm:w-64">
-                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input 
-                  type="text" 
-                  placeholder="Cari hewan atau pemilik..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-[#CCC3FF] rounded-xl focus:ring-2 focus:ring-[#432C81] outline-none transition-all font-inter"
-                />
-              </div>
-              <div className="relative w-full sm:w-48">
-                <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <select 
-                  value={filterStatus} 
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-[#CCC3FF] rounded-xl focus:ring-2 focus:ring-[#432C81] outline-none appearance-none bg-white font-inter"
-                >
-                  <option value="all">Semua Status</option>
-                  <option value="Scheduled">Dijadwalkan</option>
-                  <option value="In Progress">Berlangsung</option>
-                  <option value="Completed">Selesai</option>
-                  <option value="Cancelled">Dibatalkan</option>
-                </select>
-              </div>
+            <div className="w-full md:w-64">
+              <SelectField 
+                label="Filter Status" 
+                name="status" 
+                options={statusOptions} 
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                icon={FaFilter}
+              />
             </div>
           </div>
+        </Card>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-[#F5F3FF] text-gray-600 text-sm uppercase border-b border-[#CCC3FF]/30">
-                <tr>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">ID</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Hewan</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Pemilik</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Dokter</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Tanggal & Waktu</th>
-                  <th className="p-4 font-bold text-[#432C81] font-nunito">Status</th>
-                  <th className="p-4 font-bold text-center text-[#432C81] font-nunito">Aksi</th>
+        {/* Data Display - Table */}
+        <div className="mt-6">
+          <Card title="Daftar Janji Temu">
+            <Table headers={headers}>
+              {filtered.map((apt) => (
+                <tr key={apt.id} className="hover:bg-[#F5F3FF] transition-colors cursor-pointer" onClick={() => handleViewDetail(apt)}>
+                  <td className="p-4 text-[#432C81] font-mono font-bold text-sm">{apt.id}</td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-[#CCC3FF]/30 p-2 rounded-lg"><FaPaw className="text-[#432C81]" /></div>
+                      <div><span className="font-medium">{getPetName(apt.petId)}</span><span className="text-gray-400 text-xs block">({getPetType(apt.petId)})</span></div>
+                    </div>
+                  </td>
+                  <td className="p-4">{getOwnerName(apt.petId, owners)}</td>
+                  <td className="p-4">{apt.veterinarian}</td>
+                  <td className="p-4">{apt.date}<br/><span className="text-xs text-gray-400"><FaClock className="inline" /> {apt.time}</span></td>
+                  <td className="p-4"><Badge type={getBadgeType(apt.status)}>{apt.status}</Badge></td>
+                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex gap-3">
+                      <Link to={`/appointments/${apt.id}`} className="text-blue-500"><FaEye /></Link>
+                      <button className="text-amber-500"><FaEdit /></button>
+                      <button onClick={() => handleDelete(apt.id, getPetName(apt.petId))} className="text-red-500"><FaTrash /></button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-[#CCC3FF]/20">
-                {filtered.map((apt) => (
-                  <tr key={apt.id} className="hover:bg-[#F5F3FF] transition-colors">
-                    <td className="p-4 text-[#432C81] font-mono font-bold text-sm">
-                      {apt.id}
-                    </td>
-                    <td className="p-4">
-                      <Link to={`/appointments/${apt.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <div className="bg-[#CCC3FF]/30 p-2 rounded-lg">
-                          <FaPaw className="text-[#432C81]" />
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-800 hover:text-[#432C81] transition-colors">{getPetName(apt.petId)}</span>
-                          <span className="text-gray-400 text-xs block">({getPetType(apt.petId)})</span>
-                        </div>
-                      </Link>
-                    </td>
-                    <td className="p-4">
-                      <span className="text-sm text-gray-700">{getOwnerName(apt.petId, owners)}</span>
-                      <span className="text-gray-400 text-xs block">{getOwnerPhone(apt.petId, owners)}</span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <FaUserMd className="text-[#432C81] text-sm" />
-                        <span className="text-sm text-gray-700">{apt.veterinarian}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-sm font-medium text-gray-800">{apt.date}</div>
-                      <div className="text-gray-400 text-xs flex items-center gap-1 mt-1">
-                        <FaClock size={10} /> {apt.time}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border ${getStatusColor(apt.status)}`}>
-                        {apt.status}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex justify-center gap-3">
-                        <Link to={`/appointments/${apt.id}`} className="text-blue-500 hover:text-blue-700 transition-colors" title="Detail">
-                          <FaEye size={18} />
-                        </Link>
-                        <button className="text-amber-500 hover:text-amber-700 transition-colors" title="Edit">
-                          <FaEdit size={18} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(apt.id)}
-                          className="text-red-500 hover:text-red-700 transition-colors" 
-                          title="Hapus"
-                        >
-                          <FaTrash size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {filtered.length === 0 && (
-            <div className="p-20 text-center">
-              <FaCalendarPlus className="text-[#CCC3FF] text-6xl mx-auto mb-4" />
-              <p className="text-gray-400 font-medium">Tidak ada janji temu ditemukan.</p>
-            </div>
-          )}
-
-          <div className="px-6 py-4 border-t border-[#CCC3FF]/30 flex justify-between items-center">
-            <p className="text-sm text-gray-500">Menampilkan {filtered.length} dari {appointments.length} janji temu</p>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 border border-[#CCC3FF] rounded-lg text-sm text-gray-600 hover:bg-[#F5F3FF]">Previous</button>
-              <button className="px-3 py-1 bg-gradient-primary text-white rounded-lg text-sm shadow-md">1</button>
-              <button className="px-3 py-1 border border-[#CCC3FF] rounded-lg text-sm text-gray-600 hover:bg-[#F5F3FF]">2</button>
-              <button className="px-3 py-1 border border-[#CCC3FF] rounded-lg text-sm text-gray-600 hover:bg-[#F5F3FF]">Next</button>
-            </div>
-          </div>
+              ))}
+            </Table>
+          </Card>
         </div>
-      </div>
+      </Container>
+
+      {/* Modal Detail */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Detail Janji Temu">
+        {selectedAppointment && (
+          <div className="space-y-3">
+            <p><strong>ID:</strong> {selectedAppointment.id}</p>
+            <p><strong>Hewan:</strong> {getPetName(selectedAppointment.petId)}</p>
+            <p><strong>Dokter:</strong> {selectedAppointment.veterinarian}</p>
+            <p><strong>Tanggal:</strong> {selectedAppointment.date}</p>
+            <p><strong>Waktu:</strong> {selectedAppointment.time}</p>
+            <p><strong>Status:</strong> <Badge type={getBadgeType(selectedAppointment.status)}>{selectedAppointment.status}</Badge></p>
+            <Button type="primary" onClick={() => setIsModalOpen(false)} className="w-full">Tutup</Button>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal Form - Form Component */}
+      <Modal isOpen={isFormModalOpen} onClose={() => setIsFormModalOpen(false)} title="Tambah Janji Temu" size="lg">
+        <form onSubmit={handleSubmitAppointment}>
+          <SelectField label="Pilih Pasien" name="petId" options={petOptions} value={formData.petId} onChange={handleFormChange} required />
+          <SelectField label="Pilih Dokter" name="veterinarian" options={veterinarianOptions} value={formData.veterinarian} onChange={handleFormChange} required />
+          <InputField label="Tanggal" type="date" name="date" value={formData.date} onChange={handleFormChange} required />
+          <SelectField label="Waktu" name="time" options={timeOptions} value={formData.time} onChange={handleFormChange} required />
+          <TextArea label="Keluhan" name="symptoms" placeholder="Deskripsikan keluhan..." value={formData.symptoms} onChange={handleFormChange} />
+          <div className="flex gap-3 mt-4">
+            <Button type="success">Simpan</Button>
+            <Button type="secondary" onClick={() => setIsFormModalOpen(false)}>Batal</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Toast Feedback */}
+      {showToast && <Toast message={toastMessage} type="success" onClose={() => setShowToast(false)} />}
     </div>
   );
 }
