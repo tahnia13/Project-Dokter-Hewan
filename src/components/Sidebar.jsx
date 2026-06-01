@@ -28,7 +28,7 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
   
   // ISI MENU TETAP SAMA (tidak berubah)
   const menuItems = [
-    { path: "/", icon: FaHome, label: "Dashboard" },
+    { path: "/", icon: FaHome, label: "Beranda" },
     { path: "/pets", icon: FaPaw, label: "Pasien" },
     { path: "/appointments", icon: FaCalendarAlt, label: "Janji Temu" },
     { path: "/pet-owners", icon: FaUsers, label: "Pemilik" },
@@ -117,7 +117,7 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
       <li>
   <NavLink to="/showcase" className={menuClass}>
     <FaCube className="text-xl" />
-    <span>Showcase</span>
+    <span>Demo</span>
   </NavLink>
 </li>
 
@@ -131,12 +131,12 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
                   <FaClinicMedical size={14} />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold font-nunito">Need Help?</p>
-                  <p className="text-[10px] opacity-80 font-inter">24/7 Support</p>
+                  <p className="text-xs font-semibold font-nunito">Butuh Bantuan?</p>
+                  <p className="text-[10px] opacity-80 font-inter">Dukungan 24/7</p>
                 </div>
               </div>
               <button className="w-full bg-white/20 hover:bg-white/30 rounded-xl py-2 text-xs font-semibold transition-all flex items-center justify-center gap-2 font-inter">
-                <FaPlus size={12} /> Contact Support
+                <FaPlus size={12} /> Kontak Dukungan
               </button>
             </div>
 
@@ -145,7 +145,7 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
               className="w-full flex items-center justify-center gap-2 bg-[#CCC3FF]/30 hover:bg-[#CCC3FF]/50 text-[#432C81] py-2.5 rounded-xl transition-all text-sm font-semibold font-inter"
             >
               <FaSignOutAlt size={14} />
-              Logout
+              Keluar
             </button>
 
             <div className="mt-4 text-center">

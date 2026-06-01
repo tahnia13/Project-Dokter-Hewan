@@ -13,11 +13,11 @@ export default function AuthLayout() {
             <FaPaw className="text-7xl" />
           </div>
           <h1 className="text-5xl font-bold mb-4 font-nunito">Paws & Care</h1>
-          <p className="text-lg opacity-90 mb-8">Professional Veterinary Clinic Management System</p>
+          <p className="text-lg opacity-90 mb-8">Sistem Manajemen Klinik Hewan Profesional</p>
           <div className="space-y-4 w-full max-w-sm">
-            <div className="flex items-center gap-3 bg-white/10 rounded-xl p-3 backdrop-blur-sm"><FaHeartbeat className="text-xl" /><span className="text-sm">500+ Happy Pets Treated</span></div>
-            <div className="flex items-center gap-3 bg-white/10 rounded-xl p-3 backdrop-blur-sm"><FaShieldAlt className="text-xl" /><span className="text-sm">12 Professional Veterinarians</span></div>
-            <div className="flex items-center gap-3 bg-white/10 rounded-xl p-3 backdrop-blur-sm"><FaPaw className="text-xl" /><span className="text-sm">24/7 Emergency Care</span></div>
+            <div className="flex items-center gap-3 bg-white/10 rounded-xl p-3 backdrop-blur-sm"><FaHeartbeat className="text-xl" /><span className="text-sm">500+ Hewan Bahagia Dirawat</span></div>
+            <div className="flex items-center gap-3 bg-white/10 rounded-xl p-3 backdrop-blur-sm"><FaShieldAlt className="text-xl" /><span className="text-sm">12 Dokter Hewan Profesional</span></div>
+            <div className="flex items-center gap-3 bg-white/10 rounded-xl p-3 backdrop-blur-sm"><FaPaw className="text-xl" /><span className="text-sm">Layanan Darurat 24/7</span></div>
           </div>
           <div className="absolute bottom-10 text-xs opacity-60">© 2026 Paws & Care Clinic</div>
         </div>
@@ -26,8 +26,8 @@ export default function AuthLayout() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="lg:hidden flex justify-center mb-4"><div className="bg-gradient-primary rounded-full p-4 shadow-lg"><FaPaw className="text-3xl text-white" /></div></div>
-            <h2 className="text-2xl font-bold text-[#432C81] font-nunito">Welcome to Paws & Care</h2>
-            <p className="text-gray-500 text-sm mt-1">Veterinary Clinic Dashboard</p>
+            <h2 className="text-2xl font-bold text-[#432C81] font-nunito">Selamat Datang di Paws & Care</h2>
+            <p className="text-gray-500 text-sm mt-1">Dasbor Klinik Hewan</p>
           </div>
           <Outlet />
         </div>

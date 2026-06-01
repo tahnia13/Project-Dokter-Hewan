@@ -14,6 +14,8 @@ import Toast from "./Components/Toast";
 import Loading from "./Components/Loading";
 import Container from "./Components/Container";
 import Card from "./Components/Card";
+import ProgressBar from "./Components/ProgressBar";
+import { translateAppointmentStatus, translatePetType } from "../lib/utils";
 import { initialAppointments, initialPets, initialPetOwners, getOwnerName, getOwnerPhone } from "../data/clinicData";
 
 export default function Appointments() {
@@ -42,12 +44,12 @@ export default function Appointments() {
 
   const getPetName = (petId) => {
     const pet = pets.find(p => p.id === petId);
-    return pet ? pet.name : "Unknown";
+    return pet ? pet.name : "Tidak Diketahui";
   };
 
   const getPetType = (petId) => {
     const pet = pets.find(p => p.id === petId);
-    return pet ? pet.type : "Unknown";
+    return pet ? translatePetType(pet.type) : "Tidak Dikenal";
   };
 
   const handleDelete = (id, petName) => {
@@ -140,7 +142,7 @@ export default function Appointments() {
 
   return (
     <div id="appointments-page">
-      <PageHeader title="Janji Temu" breadcrumb={["Dashboard", "Appointment List"]}>
+      <PageHeader title="Janji Temu" breadcrumb={["Daftar Janji Temu"]}>
         <Button type="primary" onClick={handleAddAppointment}>
           <FaCalendarPlus size={14} /> Janji Temu Baru
         </Button>
@@ -148,24 +150,39 @@ export default function Appointments() {
 
       <Container>
         {/* ========== DAISYUI PROGRESS BAR ========== */}
-        <div className="bg-white rounded-xl p-5 border border-[#CCC3FF]/30 mb-6">
-          <div className="flex justify-between items-center mb-3">
+        <div className="bg-gradient-to-r from-[#432C81]/5 to-[#58315A]/5 rounded-xl p-6 border border-[#CCC3FF]/30 mb-6">
+          <div className="flex justify-between items-start mb-4">
             <div>
-              <h3 className="font-semibold text-gray-800">Progress Janji Temu Hari Ini</h3>
-              <p className="text-xs text-gray-500">{todayAppointments} janji temu terjadwal</p>
+              <h3 className="font-bold text-lg text-gray-800 mb-1">Progress Janji Temu Hari Ini</h3>
+              <p className="text-sm text-gray-500">{todayAppointments} janji temu terjadwalkan</p>
             </div>
-            <span className="text-2xl font-bold text-[#432C81]">{completionRate.toFixed(0)}%</span>
+            <div className="text-right">
+              <span className="text-3xl font-bold text-[#432C81]">{completionRate.toFixed(0)}%</span>
+              <p className="text-xs text-gray-500">Selesai</p>
+            </div>
           </div>
-          <progress 
-            className="progress progress-primary w-full h-3" 
-            value={completionRate} 
-            max="100"
-            style={{ accentColor: "#432C81" }}
-          ></progress>
-          <div className="flex justify-between mt-3 text-xs text-gray-500">
-            <span>✅ Selesai: {todayCompleted}</span>
-            <span>⏳ Berlangsung: {todayInProgress}</span>
-            <span>📋 Tertunda: {todayAppointments - todayCompleted - todayInProgress}</span>
+          
+          <ProgressBar 
+            percentage={completionRate}
+            label="Tingkat Penyelesaian"
+            showPercentage={false}
+            size="lg"
+            color="primary"
+          />
+          
+          <div className="grid grid-cols-3 gap-4 mt-5">
+            <div className="bg-white rounded-lg p-3 border border-green-200">
+              <p className="text-xs text-gray-500 mb-1">Selesai</p>
+              <p className="text-xl font-bold text-green-600">✅ {todayCompleted}</p>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-yellow-200">
+              <p className="text-xs text-gray-500 mb-1">Berlangsung</p>
+              <p className="text-xl font-bold text-yellow-600">⏳ {todayInProgress}</p>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-blue-200">
+              <p className="text-xs text-gray-500 mb-1">Tertunda</p>
+              <p className="text-xl font-bold text-blue-600">📋 {todayAppointments - todayCompleted - todayInProgress}</p>
+            </div>
           </div>
         </div>
         {/* ========================================= */}
@@ -217,7 +234,7 @@ export default function Appointments() {
                   <td className="p-4">{getOwnerName(apt.petId, owners)}</td>
                   <td className="p-4">{apt.veterinarian}</td>
                   <td className="p-4">{apt.date}<br/><span className="text-xs text-gray-400"><FaClock className="inline" /> {apt.time}</span></td>
-                  <td className="p-4"><Badge type={getBadgeType(apt.status)}>{apt.status}</Badge></td>
+                  <td className="p-4"><Badge type={getBadgeType(apt.status)}>{translateAppointmentStatus(apt.status)}</Badge></td>
                   <td className="p-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex gap-3">
                       <Link to={`/appointments/${apt.id}`} className="text-blue-500"><FaEye /></Link>
@@ -241,7 +258,7 @@ export default function Appointments() {
             <p><strong>Dokter:</strong> {selectedAppointment.veterinarian}</p>
             <p><strong>Tanggal:</strong> {selectedAppointment.date}</p>
             <p><strong>Waktu:</strong> {selectedAppointment.time}</p>
-            <p><strong>Status:</strong> <Badge type={getBadgeType(selectedAppointment.status)}>{selectedAppointment.status}</Badge></p>
+            <p><strong>Status:</strong> <Badge type={getBadgeType(selectedAppointment.status)}>{translateAppointmentStatus(selectedAppointment.status)}</Badge></p>
             <Button type="primary" onClick={() => setIsModalOpen(false)} className="w-full">Tutup</Button>
           </div>
         )}

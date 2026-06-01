@@ -30,7 +30,7 @@ export default function FormPetOwner() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Tambah Pemilik Baru" breadcrumb={["Dashboard", "Pemilik", "Tambah"]} />
+      <PageHeader title="Tambah Pemilik Baru" breadcrumb={["Pemilik", "Tambah"]} />
       <div className="max-w-2xl mx-auto">
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-[#CCC3FF]/30 overflow-hidden">
           <div className="bg-gradient-primary px-4 py-3"><div className="flex items-center gap-2"><FaHeartbeat className="text-white text-lg" /><div><h2 className="text-white font-semibold text-base font-nunito">Form Registrasi Pemilik</h2><p className="text-white/80 text-[10px]">Isi data pemilik hewan dengan lengkap</p></div></div></div>

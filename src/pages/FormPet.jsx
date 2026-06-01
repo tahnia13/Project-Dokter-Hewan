@@ -63,7 +63,7 @@ export default function FormPet() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Tambah Pasien Baru" breadcrumb={["Dashboard", "Pasien", "Tambah"]} />
+      <PageHeader title="Tambah Pasien Baru" breadcrumb={["Pasien", "Tambah"]} />
       <div className="max-w-3xl mx-auto">
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-[#CCC3FF]/30 overflow-hidden">
           <div className="bg-gradient-primary px-4 py-3">

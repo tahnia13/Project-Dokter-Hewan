@@ -15,8 +15,8 @@ export default function ErrorPage({ kodeError, deskripsiError }) {
         <h2 className="text-xl font-bold text-[#432C81] mb-2 font-nunito">Error {kodeError || 404}</h2>
         <p className="text-gray-500 mb-6 text-sm">{deskripsiError || "Halaman tidak ditemukan"}</p>
         <div className="flex gap-3 justify-center">
-          <Link to="/" className="inline-flex items-center gap-1.5 bg-gradient-primary text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-md"><FaHome size={12} /> Back to Dashboard</Link>
-          <button onClick={() => window.history.back()} className="inline-flex items-center gap-1.5 bg-[#CCC3FF]/30 text-[#432C81] px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#CCC3FF]/50"><FaArrowLeft size={12} /> Go Back</button>
+          <Link to="/" className="inline-flex items-center gap-1.5 bg-gradient-primary text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-md"><FaHome size={12} /> Kembali ke Beranda</Link>
+          <button onClick={() => window.history.back()} className="inline-flex items-center gap-1.5 bg-[#CCC3FF]/30 text-[#432C81] px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#CCC3FF]/50"><FaArrowLeft size={12} /> Kembali</button>
         </div>
       </div>
     </div>

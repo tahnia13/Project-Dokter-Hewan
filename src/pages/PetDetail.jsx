@@ -6,6 +6,7 @@ import {
 } from "react-icons/fa";
 import PageHeader from "../components/PageHeader";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { translatePetType, translateGender, translateHealthStatus } from "../lib/utils";
 import { initialPets, initialPetOwners } from "../data/clinicData";
 
 export default function PetDetail() {
@@ -73,13 +74,13 @@ export default function PetDetail() {
             </div>
             <div className="flex-1">
               <h1 className="text-3xl font-bold font-nunito">{pet.name}</h1>
-              <p className="text-white/80 text-sm font-inter">Patient ID: {pet.id}</p>
+              <p className="text-white/80 text-sm font-inter">ID Pasien: {pet.id}</p>
               <div className="flex items-center gap-2 mt-2">
                 <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20">
-                  {pet.type}
+                  {translatePetType(pet.type)}
                 </span>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getHealthColor(pet.healthStatus)}`}>
-                  {pet.healthStatus}
+                  {translateHealthStatus(pet.healthStatus)}
                 </span>
               </div>
             </div>
@@ -100,7 +101,7 @@ export default function PetDetail() {
               <div className="space-y-3">
                 <div className="flex justify-between border-b border-[#CCC3FF]/30 pb-2">
                   <span className="text-gray-500 font-inter">Jenis Hewan</span>
-                  <span className="font-semibold text-gray-800">{pet.type}</span>
+                  <span className="font-semibold text-gray-800">{translatePetType(pet.type)}</span>
                 </div>
                 <div className="flex justify-between border-b border-[#CCC3FF]/30 pb-2">
                   <span className="text-gray-500 font-inter">Ras</span>
@@ -111,8 +112,8 @@ export default function PetDetail() {
                   <span className="font-semibold text-gray-800">{pet.age} tahun</span>
                 </div>
                 <div className="flex justify-between border-b border-[#CCC3FF]/30 pb-2">
-                  <span className="text-gray-500 font-inter"><FaVenusMars className="inline mr-1" /> Gender</span>
-                  <span className="font-semibold text-gray-800">{pet.gender}</span>
+                  <span className="text-gray-500 font-inter"><FaVenusMars className="inline mr-1" /> Jenis Kelamin</span>
+                  <span className="font-semibold text-gray-800">{translateGender(pet.gender)}</span>
                 </div>
                 <div className="flex justify-between border-b border-[#CCC3FF]/30 pb-2">
                   <span className="text-gray-500 font-inter">Berat Badan</span>

@@ -11,6 +11,7 @@ import Container from "./Components/Container";
 import Modal from "./Components/Modal";
 import Toast from "./Components/Toast";
 import Loading from "./Components/Loading";
+import { translatePetType } from "../lib/utils";
 import { initialPetOwners, initialPets } from "../data/clinicData";
 
 export default function PetOwners() {
@@ -33,7 +34,7 @@ export default function PetOwners() {
 
   const getOwnerPets = (ownerId) => {
     const ownerPets = pets.filter(pet => pet.ownerId === ownerId);
-    return ownerPets.map(pet => `${pet.name} (${pet.type})`).join(", ");
+    return ownerPets.map(pet => `${pet.name} (${translatePetType(pet.type)})`).join(", ");
   };
 
   const getPetCount = (ownerId) => {
@@ -67,7 +68,7 @@ export default function PetOwners() {
 
   return (
     <div id="petowners-page">
-      <PageHeader title="Pemilik Hewan" breadcrumb={["Dashboard", "Pet Owner List"]}>
+      <PageHeader title="Pemilik Hewan" breadcrumb={["Daftar Pemilik"]}>
         <Button type="primary" onClick={() => navigate("/add-pet-owner")}>
           <FaPlus size={14} /> Tambah Pemilik
         </Button>

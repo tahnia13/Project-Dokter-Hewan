@@ -78,26 +78,13 @@ export default function Dashboard() {
       const owner = owners.find(o => o.id === pet?.ownerId);
       return {
         id: apt.id,
-        petName: pet?.name || "Unknown",
+        petName: pet?.name || "Tidak Diketahui",
         symptoms: apt.symptoms,
         time: apt.time,
         status: apt.status,
-        ownerName: owner?.name || "Unknown"
+        ownerName: owner?.name || "Tidak Diketahui"
       };
     });
-
-  // Data kunjungan terbaru untuk tabel
-  const recentData = appointments.slice(0, 5).map(apt => {
-    const pet = pets.find(p => p.id === apt.petId);
-    const owner = owners.find(o => o.id === pet?.ownerId);
-    return {
-      petName: pet?.name || "-",
-      ownerName: owner?.name || "-",
-      veterinarian: apt.veterinarian,
-      date: apt.date,
-      status: apt.status
-    };
-  });
 
   // Data untuk FeatureSection
   const features = [
@@ -141,6 +128,23 @@ export default function Dashboard() {
   };
 
   const recentHeaders = ["Hewan", "Pemilik", "Dokter", "Tanggal", "Status"];
+
+  const recentData = appointments
+    .slice()
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 5)
+    .map((apt) => {
+      const pet = pets.find((p) => p.id === apt.petId);
+      const owner = owners.find((o) => o.id === pet?.ownerId);
+
+      return {
+        petName: pet?.name || "Tidak Diketahui",
+        ownerName: owner?.name || "Tidak Diketahui",
+        veterinarian: apt.veterinarian || "Dokter",
+        date: apt.date,
+        status: apt.status,
+      };
+    });
 
   if (isLoading) return <Loading fullScreen text="Memuat data dashboard..." />;
 
@@ -186,7 +190,7 @@ export default function Dashboard() {
             📋 Info Klinik Paws & Care
           </button>
           <dialog id="info_modal" className="modal">
-            <div className="modal-box">
+            <div className="modal-box bg-white text-black">
               <h3 className="font-bold text-lg text-[#432C81]">Paws & Care Veterinary Clinic</h3>
               <div className="py-4 space-y-2">
                 <p>📍 <strong>Alamat:</strong> Jl. Merdeka No.123, Jakarta</p>

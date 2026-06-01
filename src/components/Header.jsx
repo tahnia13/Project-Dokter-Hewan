@@ -52,7 +52,7 @@ export default function Header({ onMenuClick }) {
 
             <div className="flex items-center gap-2">
               <div className="text-right hidden md:block">
-                <p className="text-[10px] text-gray-400 font-inter">Welcome back,</p>
+                <p className="text-[10px] text-gray-400 font-inter">Selamat datang,</p>
                 <p className="text-xs font-bold text-[#432C81] font-nunito">Dr. Tahnia</p>
               </div>
               

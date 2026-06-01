@@ -61,7 +61,7 @@ export default function Veterinarians() {
 
   return (
     <div id="veterinarians-page">
-      <PageHeader title="Dokter Hewan" breadcrumb={["Dashboard", "Veterinarian List"]}>
+      <PageHeader title="Dokter Hewan" breadcrumb={["Daftar Dokter"]}>
         <Button type="primary" onClick={() => navigate("/add-veterinarian")}>
           <FaPlus size={14} /> Tambah Dokter
         </Button>

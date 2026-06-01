@@ -50,12 +50,12 @@ export default function ComponentShowcase() {
 
   return (
     <div id="component-showcase">
-      <PageHeader title="Component Showcase" breadcrumb={["Dashboard", "Showcase"]} />
+      <PageHeader title="Demo Komponen" breadcrumb={["Demo Komponen"]} />
 
       <Container>
         {/* Hero Section */}
         <HeroSection 
-          title="Component Showcase"
+          title="Demo Komponen"
           subtitle="Demo semua komponen yang telah dibuat"
           buttonText="Mulai"
         />
@@ -68,9 +68,9 @@ export default function ComponentShowcase() {
           <Card title="Card Component">
             <p>Ini adalah contoh Card component.</p>
             <div className="mt-3 flex gap-2">
-              <Badge type="success">Success</Badge>
-              <Badge type="warning">Warning</Badge>
-              <Badge type="danger">Danger</Badge>
+              <Badge type="success">Sukses</Badge>
+              <Badge type="warning">Peringatan</Badge>
+              <Badge type="danger">Bahaya</Badge>
               <Badge type="info">Info</Badge>
             </div>
             <div className="mt-3 flex gap-2">
@@ -103,7 +103,7 @@ export default function ComponentShowcase() {
               <SelectField label="Kategori" name="category" options={categoryOptions} value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
               <TextArea label="Catatan" name="notes" placeholder="Masukkan catatan..." />
             </div>
-            <Button type="primary" className="mt-4">Submit</Button>
+            <Button type="primary" className="mt-4">Kirim</Button>
           </Card>
         </div>
 
@@ -133,12 +133,12 @@ export default function ComponentShowcase() {
         <div className="mt-8">
           <Card title="Button Variants">
             <div className="flex flex-wrap gap-3">
-              <Button type="primary">Primary</Button>
-              <Button type="success">Success</Button>
-              <Button type="danger">Danger</Button>
-              <Button type="warning">Warning</Button>
-              <Button type="outline">Outline</Button>
-              <Button type="secondary">Secondary</Button>
+              <Button type="primary">Primer</Button>
+              <Button type="success">Sukses</Button>
+              <Button type="danger">Bahaya</Button>
+              <Button type="warning">Peringatan</Button>
+              <Button type="outline">Garis</Button>
+              <Button type="secondary">Sekunder</Button>
             </div>
           </Card>
         </div>

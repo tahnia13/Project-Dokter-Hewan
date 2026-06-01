@@ -12,7 +12,7 @@ export default function SelectField({ label, name, options, value, onChange, req
         value={value}
         onChange={onChange}
         required={required}
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#432C81] focus:border-[#432C81] outline-none transition-all"
+        className="w-full px-4 py-2 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#432C81] focus:border-[#432C81] outline-none transition-all"
       >
         <option value="">Pilih...</option>
         {options.map((option) => (

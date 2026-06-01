@@ -14,7 +14,7 @@ export default function TextArea({ label, name, placeholder, value, onChange, ro
         onChange={onChange}
         rows={rows}
         required={required}
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#432C81] focus:border-[#432C81] outline-none resize-none transition-all"
+        className="w-full px-4 py-2 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#432C81] focus:border-[#432C81] outline-none resize-none transition-all"
       />
     </div>
   );

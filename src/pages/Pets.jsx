@@ -12,6 +12,7 @@ import Toast from "./Components/Toast";
 import Modal from "./Components/Modal";
 import Loading from "./Components/Loading";
 import { initialPets, initialPetOwners, getOwnerName } from "../data/clinicData";
+import { translateHealthStatus, translatePetType, translateGender } from "../lib/utils";
 
 export default function Pets() {
   const navigate = useNavigate();
@@ -23,7 +24,6 @@ export default function Pets() {
   const [toastMessage, setToastMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPet, setSelectedPet] = useState(null);
-  // ========== TAMBAHKAN STATE UNTUK FILTER TABS ==========
   const [filterType, setFilterType] = useState("all");
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function Pets() {
   const dogsPets = filteredPets.filter(pet => pet.type === "Dog");
   const catsPets = filteredPets.filter(pet => pet.type === "Cat");
 
-  const headers = ["Patient ID", "Pet Name", "Type & Breed", "Owner", "Status", "Actions"];
+  const headers = ["ID Pasien", "Nama Hewan", "Jenis & Ras", "Pemilik", "Status", "Aksi"];
   
   const getBadgeType = (status) => {
     if (status === "Healthy") return "success";
@@ -81,17 +81,35 @@ export default function Pets() {
           <td className="p-4">
             <div className="flex items-center gap-3">
               <div className="bg-[#CCC3FF]/30 p-2 rounded-lg">{getPetIcon(pet.type)}</div>
-              <div><span className="font-bold">{pet.name}</span><br/><span className="text-xs text-gray-400">{pet.gender}, {pet.age} thn</span></div>
+              <div>
+                <span className="font-bold">{pet.name}</span>
+                <br/>
+                <span className="text-xs text-gray-400">{pet.gender}, {pet.age} thn</span>
+              </div>
             </div>
-          </td>
-          <td className="p-4">{pet.type} | {pet.breed}</td>
+           </td>
+          <td className="p-4">{translatePetType(pet.type)} | {pet.breed}</td>
           <td className="p-4">{getOwnerName(pet.id, owners)}</td>
-          <td className="p-4"><Badge type={getBadgeType(pet.healthStatus)}>{pet.healthStatus}</Badge></td>
+          <td className="p-4">
+            <Badge type={getBadgeType(pet.healthStatus)}>
+              {translateHealthStatus(pet.healthStatus)}
+            </Badge>
+          </td>
           <td className="p-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex gap-3">
-              <Link to={`/pets/${pet.id}`} className="text-blue-500"><FaEye /></Link>
-              <button className="text-amber-500"><FaEdit /></button>
-              <button onClick={() => handleDelete(pet.id, pet.name)} className="text-red-500"><FaTrash /></button>
+              <Link to={`/pets/${pet.id}`} className="text-blue-500 hover:text-blue-700 transition-colors" title="Detail">
+                <FaEye size={18} />
+              </Link>
+              <button className="text-amber-500 hover:text-amber-700 transition-colors" title="Edit">
+                <FaEdit size={18} />
+              </button>
+              <button 
+                onClick={() => handleDelete(pet.id, pet.name)} 
+                className="text-red-500 hover:text-red-700 transition-colors" 
+                title="Hapus"
+              >
+                <FaTrash size={18} />
+              </button>
             </div>
           </td>
         </tr>
@@ -103,7 +121,7 @@ export default function Pets() {
 
   return (
     <div id="pets-page">
-      <PageHeader title="Data Pasien" breadcrumb={["Dashboard", "Pet List"]}>
+      <PageHeader title="Data Pasien" breadcrumb={["Daftar Pasien"]}>
         <Button type="primary" onClick={() => navigate("/add-pet")}>
           <FaPlus size={14} /> Tambah Pasien
         </Button>
@@ -122,39 +140,49 @@ export default function Pets() {
           />
         </Card>
 
-        {/* ========== DAISYUI TABS ========== */}
+        {/* Data Display - Table dengan Tabs Manual */}
         <div className="mt-6">
           <Card title="Daftar Pasien Hewan">
-            <div role="tablist" className="tabs tabs-bordered mb-4">
-              <button 
-                role="tab" 
-                className={`tab ${filterType === "all" ? "tab-active text-[#432C81]" : "text-gray-500"}`}
+            {/* Tabs Manual */}
+            <div className="flex border-b border-gray-200 mb-4">
+              <button
                 onClick={() => setFilterType("all")}
+                className={`px-4 py-2 text-sm font-medium transition-all ${
+                  filterType === "all"
+                    ? "text-[#432C81] border-b-2 border-[#432C81]"
+                    : "text-gray-500 hover:text-[#432C81]"
+                }`}
               >
                 📋 Semua Pasien ({allPets.length})
               </button>
-              <button 
-                role="tab" 
-                className={`tab ${filterType === "dogs" ? "tab-active text-[#432C81]" : "text-gray-500"}`}
+              <button
                 onClick={() => setFilterType("dogs")}
+                className={`px-4 py-2 text-sm font-medium transition-all ${
+                  filterType === "dogs"
+                    ? "text-[#432C81] border-b-2 border-[#432C81]"
+                    : "text-gray-500 hover:text-[#432C81]"
+                }`}
               >
                 🐕 Anjing ({dogsPets.length})
               </button>
-              <button 
-                role="tab" 
-                className={`tab ${filterType === "cats" ? "tab-active text-[#432C81]" : "text-gray-500"}`}
+              <button
                 onClick={() => setFilterType("cats")}
+                className={`px-4 py-2 text-sm font-medium transition-all ${
+                  filterType === "cats"
+                    ? "text-[#432C81] border-b-2 border-[#432C81]"
+                    : "text-gray-500 hover:text-[#432C81]"
+                }`}
               >
                 🐈 Kucing ({catsPets.length})
               </button>
             </div>
 
+            {/* Konten Tabel */}
             {filterType === "all" && renderPetTable(allPets)}
             {filterType === "dogs" && renderPetTable(dogsPets)}
             {filterType === "cats" && renderPetTable(catsPets)}
           </Card>
         </div>
-        {/* =============================== */}
 
         {/* Statistik Card */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -164,13 +192,19 @@ export default function Pets() {
           </Card>
           <Card title="Jenis Hewan" className="text-center">
             <div className="flex justify-center gap-4">
-              <div><FaDog className="text-blue-500 mx-auto" /><span className="text-sm">{pets.filter(p => p.type === "Dog").length} Anjing</span></div>
-              <div><FaCat className="text-orange-500 mx-auto" /><span className="text-sm">{pets.filter(p => p.type === "Cat").length} Kucing</span></div>
+              <div>
+                <FaDog className="text-blue-500 mx-auto text-xl" />
+                <span className="text-sm">{pets.filter(p => p.type === "Dog").length} Anjing</span>
+              </div>
+              <div>
+                <FaCat className="text-orange-500 mx-auto text-xl" />
+                <span className="text-sm">{pets.filter(p => p.type === "Cat").length} Kucing</span>
+              </div>
             </div>
           </Card>
           <Card title="Status Kesehatan" className="text-center">
-            <Badge type="success">Healthy: {pets.filter(p => p.healthStatus === "Healthy").length}</Badge>
-            <Badge type="warning" className="ml-2">Perawatan: {pets.filter(p => p.healthStatus === "Under Treatment").length}</Badge>
+            <Badge type="success">Sehat: {pets.filter(p => p.healthStatus === "Healthy").length}</Badge>
+            <Badge type="warning" className="ml-2">Sedang Dirawat: {pets.filter(p => p.healthStatus === "Under Treatment").length}</Badge>
           </Card>
         </div>
       </Container>
@@ -181,11 +215,14 @@ export default function Pets() {
           <div className="space-y-3">
             <p><strong>ID:</strong> {selectedPet.id}</p>
             <p><strong>Nama:</strong> {selectedPet.name}</p>
-            <p><strong>Jenis:</strong> {selectedPet.type}</p>
+            <p><strong>Jenis:</strong> {translatePetType(selectedPet.type)}</p>
             <p><strong>Ras:</strong> {selectedPet.breed}</p>
             <p><strong>Umur:</strong> {selectedPet.age} tahun</p>
-            <p><strong>Status:</strong> <Badge type={getBadgeType(selectedPet.healthStatus)}>{selectedPet.healthStatus}</Badge></p>
-            <Button type="primary" onClick={() => setIsModalOpen(false)} className="w-full">Tutup</Button>
+            <p><strong>Jenis Kelamin:</strong> {translateGender(selectedPet.gender)}</p>
+            <p><strong>Berat:</strong> {selectedPet.weight}</p>
+            <p><strong>Status:</strong> <Badge type={getBadgeType(selectedPet.healthStatus)}>{translateHealthStatus(selectedPet.healthStatus)}</Badge></p>
+            <p><strong>Pemilik:</strong> {getOwnerName(selectedPet.id, owners)}</p>
+            <Button type="primary" onClick={() => setIsModalOpen(false)} className="w-full mt-4">Tutup</Button>
           </div>
         )}
       </Modal>

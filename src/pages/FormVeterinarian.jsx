@@ -30,7 +30,7 @@ export default function FormVeterinarian() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Tambah Dokter Hewan" breadcrumb={["Dashboard", "Dokter", "Tambah"]} />
+      <PageHeader title="Tambah Dokter Hewan" breadcrumb={["Dokter", "Tambah"]} />
       <div className="max-w-2xl mx-auto">
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-[#CCC3FF]/30 overflow-hidden">
           <div className="bg-gradient-primary px-4 py-3"><div className="flex items-center gap-2"><FaHeartbeat className="text-white text-lg" /><div><h2 className="text-white font-semibold text-base font-nunito">Form Tambah Dokter</h2><p className="text-white/80 text-[10px]">Isi data dokter hewan dengan lengkap</p></div></div></div>
@@ -42,7 +42,7 @@ export default function FormVeterinarian() {
               <div><label className="block text-[11px] font-semibold text-gray-600 mb-1"><FaPhone className="inline mr-1 text-[10px]" />Nomor Telepon</label><input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="input-primary py-2 text-sm" /></div>
               <div><label className="block text-[11px] font-semibold text-gray-600 mb-1"><FaEnvelope className="inline mr-1 text-[10px]" />Email</label><input type="email" name="email" value={formData.email} onChange={handleChange} className="input-primary py-2 text-sm" /></div>
               <div><label className="block text-[11px] font-semibold text-gray-600 mb-1"><FaCalendarAlt className="inline mr-1 text-[10px]" />Tanggal Bergabung</label><input type="date" name="joinDate" value={formData.joinDate} onChange={handleChange} className="input-primary py-2 text-sm" /></div>
-              <div><label className="block text-[11px] font-semibold text-gray-600 mb-1">Status</label><select name="status" value={formData.status} onChange={handleChange} className="input-primary py-2 text-sm"><option>Active</option><option>On Leave</option></select></div>
+              <div><label className="block text-[11px] font-semibold text-gray-600 mb-1">Status</label><select name="status" value={formData.status} onChange={handleChange} className="input-primary py-2 text-sm"><option value="Active">Aktif</option><option value="On Leave">Cuti</option></select></div>
             </div>
             <div className="flex gap-3 pt-2"><button type="submit" className="flex-1 btn-primary py-2 text-sm">Tambah Dokter</button><button type="button" onClick={() => navigate("/veterinarians")} className="flex-1 btn-secondary py-2 text-sm">Batal</button></div>
           </div>

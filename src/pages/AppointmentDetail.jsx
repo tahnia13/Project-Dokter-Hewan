@@ -5,6 +5,7 @@ import {
   FaNotesMedical, FaUser, FaPhone, FaEnvelope, FaDog, FaCat 
 } from "react-icons/fa";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { translateAppointmentStatus, translatePetType } from "../lib/utils";
 import { initialAppointments, initialPets, initialPetOwners, initialVeterinarians } from "../data/clinicData";
 
 export default function AppointmentDetail() {
@@ -73,11 +74,11 @@ export default function AppointmentDetail() {
               />
             </div>
             <div>
-              <h1 className="text-3xl font-bold font-nunito">Appointment Detail</h1>
+              <h1 className="text-3xl font-bold font-nunito">Detail Janji Temu</h1>
               <p className="text-white/80 text-sm font-inter">ID: {appointment.id}</p>
               <div className="flex items-center gap-2 mt-2">
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(appointment.status)} bg-white/20 text-white`}>
-                  {appointment.status}
+                  {translateAppointmentStatus(appointment.status)}
                 </span>
               </div>
             </div>
@@ -136,7 +137,7 @@ export default function AppointmentDetail() {
                       <Link to={`/pets/${pet.id}`} className="font-semibold text-gray-800 hover:text-[#432C81]">
                         {pet.name}
                       </Link>
-                      <p className="text-xs text-gray-500">{pet.type} • {pet.breed}</p>
+                      <p className="text-xs text-gray-500">{translatePetType(pet.type)} • {pet.breed}</p>
                     </div>
                   </div>
                   <div className="flex justify-between border-b border-[#CCC3FF]/30 pb-2">

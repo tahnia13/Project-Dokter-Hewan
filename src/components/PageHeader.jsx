@@ -5,7 +5,7 @@ export default function PageHeader({ title, breadcrumb, children, subtitle }) {
   const location = useLocation();
   const getTitle = () => {
     if (title) return title;
-    if (location.pathname === "/") return "Dashboard";
+    if (location.pathname === "/") return "Beranda";
     if (location.pathname === "/pets") return "Data Pasien";
     if (location.pathname === "/add-pet") return "Tambah Pasien";
     if (location.pathname === "/appointments") return "Janji Temu";
@@ -14,7 +14,7 @@ export default function PageHeader({ title, breadcrumb, children, subtitle }) {
     if (location.pathname === "/add-pet-owner") return "Tambah Pemilik";
     if (location.pathname === "/veterinarians") return "Dokter Hewan";
     if (location.pathname === "/add-veterinarian") return "Tambah Dokter";
-    return "Dashboard";
+    return "Beranda";
   };
   return (
     <div className="bg-white rounded-xl shadow-sm border border-[#CCC3FF]/30 p-4 mb-5">
@@ -29,7 +29,7 @@ export default function PageHeader({ title, breadcrumb, children, subtitle }) {
           {subtitle && <p className="text-xs text-gray-500 mt-0.5 font-inter">{subtitle}</p>}
           <div className="flex items-center gap-1 mt-1 text-xs font-inter">
             <Link to="/" className="text-gray-500 hover:text-[#432C81] flex items-center gap-0.5">
-              <FaHome className="text-[10px]" /> Home
+              <FaHome className="text-[10px]" /> Beranda
             </Link>
             {(breadcrumb || []).map((item, idx) => (
               <div key={idx} className="flex items-center gap-1">
