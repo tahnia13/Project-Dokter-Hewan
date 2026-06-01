@@ -7,7 +7,7 @@ import Badge from "./Components/Badge";
 import Table from "./Components/Table";
 import InputField from "./Components/InputField";
 import SelectField from "./Components/SelectField";
-import TextArea from "./Components/TextArea";  // ← TAMBAHKAN INI
+import TextArea from "./Components/TextArea";
 import Alert from "./Components/Alert";
 import Modal from "./Components/Modal";
 import Toast from "./Components/Toast";
@@ -128,6 +128,14 @@ export default function Appointments() {
     return "primary";
   };
 
+  // ========== HITUNG PROGRESS UNTUK HARI INI ==========
+  const today = new Date().toISOString().slice(0, 10);
+  const todayAppointments = appointments.filter(a => a.date === today).length;
+  const todayCompleted = appointments.filter(a => a.date === today && a.status === "Completed").length;
+  const todayInProgress = appointments.filter(a => a.date === today && a.status === "In Progress").length;
+  const completionRate = todayAppointments > 0 ? (todayCompleted / todayAppointments) * 100 : 0;
+  // ====================================================
+
   if (isLoading) return <Loading fullScreen text="Memuat data janji temu..." />;
 
   return (
@@ -139,6 +147,29 @@ export default function Appointments() {
       </PageHeader>
 
       <Container>
+        {/* ========== DAISYUI PROGRESS BAR ========== */}
+        <div className="bg-white rounded-xl p-5 border border-[#CCC3FF]/30 mb-6">
+          <div className="flex justify-between items-center mb-3">
+            <div>
+              <h3 className="font-semibold text-gray-800">Progress Janji Temu Hari Ini</h3>
+              <p className="text-xs text-gray-500">{todayAppointments} janji temu terjadwal</p>
+            </div>
+            <span className="text-2xl font-bold text-[#432C81]">{completionRate.toFixed(0)}%</span>
+          </div>
+          <progress 
+            className="progress progress-primary w-full h-3" 
+            value={completionRate} 
+            max="100"
+            style={{ accentColor: "#432C81" }}
+          ></progress>
+          <div className="flex justify-between mt-3 text-xs text-gray-500">
+            <span>✅ Selesai: {todayCompleted}</span>
+            <span>⏳ Berlangsung: {todayInProgress}</span>
+            <span>📋 Tertunda: {todayAppointments - todayCompleted - todayInProgress}</span>
+          </div>
+        </div>
+        {/* ========================================= */}
+
         {/* Alert Feedback */}
         {showAlert && (
           <Alert type="success" message="Janji temu berhasil ditambahkan!" onClose={() => setShowAlert(false)} />

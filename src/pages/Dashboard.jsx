@@ -177,6 +177,35 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* ========== DAISYUI MODAL (DIALOG) ========== */}
+        <div className="flex justify-center mb-6">
+          <button 
+            className="btn btn-primary bg-[#432C81] hover:bg-[#58315A] border-none"
+            onClick={() => document.getElementById('info_modal').showModal()}
+          >
+            📋 Info Klinik Paws & Care
+          </button>
+          <dialog id="info_modal" className="modal">
+            <div className="modal-box">
+              <h3 className="font-bold text-lg text-[#432C81]">Paws & Care Veterinary Clinic</h3>
+              <div className="py-4 space-y-2">
+                <p>📍 <strong>Alamat:</strong> Jl. Merdeka No.123, Jakarta</p>
+                <p>📞 <strong>Telepon:</strong> (021) 1234-5678</p>
+                <p>⏰ <strong>Jam Buka:</strong> Senin - Sabtu (09:00 - 17:00)</p>
+                <p>🩺 <strong>Dokter Aktif:</strong> {doctorName}</p>
+                <p>📧 <strong>Email:</strong> info@pawscare.com</p>
+                <p>🏥 <strong>Total Pasien:</strong> {totalPets} hewan terdaftar</p>
+              </div>
+              <div className="modal-action">
+                <form method="dialog">
+                  <button className="btn btn-sm bg-gray-200 hover:bg-gray-300">Tutup</button>
+                </form>
+              </div>
+            </div>
+          </dialog>
+        </div>
+        {/* ========================================= */}
+
         {/* Data Display Component - Card Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
           <Card title="Total Pasien" className="text-center">
