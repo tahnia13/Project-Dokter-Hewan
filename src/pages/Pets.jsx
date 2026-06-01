@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { FaSearch, FaPlus, FaDog, FaCat, FaPaw, FaEdit, FaTrash, FaEye, FaHeartbeat } from "react-icons/fa";
+import {
+  FaSearch,
+  FaPlus,
+  FaDog,
+  FaCat,
+  FaPaw,
+  FaEdit,
+  FaTrash,
+  FaEye,
+  FaHeartbeat,
+} from "react-icons/fa";
 import PageHeader from "../components/PageHeader";
 import Button from "./Components/Button";
 import Badge from "./Components/Badge";
@@ -11,8 +21,16 @@ import Container from "./Components/Container";
 import Toast from "./Components/Toast";
 import Modal from "./Components/Modal";
 import Loading from "./Components/Loading";
-import { initialPets, initialPetOwners, getOwnerName } from "../data/clinicData";
-import { translateHealthStatus, translatePetType, translateGender } from "../lib/utils";
+import {
+  initialPets,
+  initialPetOwners,
+  getOwnerName,
+} from "../data/clinicData";
+import {
+  translateHealthStatus,
+  translatePetType,
+  translateGender,
+} from "../lib/utils";
 
 export default function Pets() {
   const navigate = useNavigate();
@@ -41,7 +59,7 @@ export default function Pets() {
 
   const handleDelete = (id, name) => {
     if (window.confirm(`Hapus pasien "${name}"?`)) {
-      const newPets = pets.filter(pet => pet.id !== id);
+      const newPets = pets.filter((pet) => pet.id !== id);
       setPets(newPets);
       setToastMessage(`✅ Pasien ${name} berhasil dihapus!`);
       setShowToast(true);
@@ -54,18 +72,28 @@ export default function Pets() {
     setIsModalOpen(true);
   };
 
-  const filteredPets = pets.filter(pet => 
-    pet.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    getOwnerName(pet.id, owners).toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPets = pets.filter(
+    (pet) =>
+      pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getOwnerName(pet.id, owners)
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()),
   );
 
   // Filter berdasarkan jenis hewan
   const allPets = filteredPets;
-  const dogsPets = filteredPets.filter(pet => pet.type === "Dog");
-  const catsPets = filteredPets.filter(pet => pet.type === "Cat");
+  const dogsPets = filteredPets.filter((pet) => pet.type === "Dog");
+  const catsPets = filteredPets.filter((pet) => pet.type === "Cat");
 
-  const headers = ["ID Pasien", "Nama Hewan", "Jenis & Ras", "Pemilik", "Status", "Aksi"];
-  
+  const headers = [
+    "ID Pasien",
+    "Nama Hewan",
+    "Jenis & Ras",
+    "Pemilik",
+    "Status",
+    "Aksi",
+  ];
+
   const getBadgeType = (status) => {
     if (status === "Healthy") return "success";
     if (status === "Under Treatment") return "warning";
@@ -76,19 +104,29 @@ export default function Pets() {
   const renderPetTable = (petList) => (
     <Table headers={headers}>
       {petList.map((pet) => (
-        <tr key={pet.id} className="hover:bg-[#F5F3FF] transition-colors cursor-pointer" onClick={() => handleViewDetail(pet)}>
+        <tr
+          key={pet.id}
+          className="hover:bg-[#F5F3FF] transition-colors cursor-pointer"
+          onClick={() => handleViewDetail(pet)}
+        >
           <td className="p-4 text-[#432C81] font-mono text-sm">{pet.id}</td>
           <td className="p-4">
             <div className="flex items-center gap-3">
-              <div className="bg-[#CCC3FF]/30 p-2 rounded-lg">{getPetIcon(pet.type)}</div>
+              <div className="bg-[#CCC3FF]/30 p-2 rounded-lg">
+                {getPetIcon(pet.type)}
+              </div>
               <div>
                 <span className="font-bold">{pet.name}</span>
-                <br/>
-                <span className="text-xs text-gray-400">{pet.gender}, {pet.age} thn</span>
+                <br />
+                <span className="text-xs text-gray-400">
+                  {pet.gender}, {pet.age} thn
+                </span>
               </div>
             </div>
-           </td>
-          <td className="p-4">{translatePetType(pet.type)} | {pet.breed}</td>
+          </td>
+          <td className="p-4">
+            {translatePetType(pet.type)} | {pet.breed}
+          </td>
           <td className="p-4">{getOwnerName(pet.id, owners)}</td>
           <td className="p-4">
             <Badge type={getBadgeType(pet.healthStatus)}>
@@ -97,15 +135,22 @@ export default function Pets() {
           </td>
           <td className="p-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex gap-3">
-              <Link to={`/pets/${pet.id}`} className="text-blue-500 hover:text-blue-700 transition-colors" title="Detail">
+              <Link
+                to={`/pets/${pet.id}`}
+                className="text-blue-500 hover:text-blue-700 transition-colors"
+                title="Detail"
+              >
                 <FaEye size={18} />
               </Link>
-              <button className="text-amber-500 hover:text-amber-700 transition-colors" title="Edit">
+              <button
+                className="text-amber-500 hover:text-amber-700 transition-colors"
+                title="Edit"
+              >
                 <FaEdit size={18} />
               </button>
-              <button 
-                onClick={() => handleDelete(pet.id, pet.name)} 
-                className="text-red-500 hover:text-red-700 transition-colors" 
+              <button
+                onClick={() => handleDelete(pet.id, pet.name)}
+                className="text-red-500 hover:text-red-700 transition-colors"
                 title="Hapus"
               >
                 <FaTrash size={18} />
@@ -130,10 +175,10 @@ export default function Pets() {
       <Container>
         {/* Card Search */}
         <Card title="Cari Pasien">
-          <InputField 
-            label="" 
-            name="search" 
-            placeholder="Cari nama hewan atau pemilik..." 
+          <InputField
+            label=""
+            name="search"
+            placeholder="Cari nama hewan atau pemilik..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             icon={FaSearch}
@@ -143,38 +188,29 @@ export default function Pets() {
         {/* Data Display - Table dengan Tabs Manual */}
         <div className="mt-6">
           <Card title="Daftar Pasien Hewan">
-            {/* Tabs Manual */}
-            <div className="flex border-b border-gray-200 mb-4">
-              <button
+            {/* Tabs DaisyUI */}
+            <div role="tablist" className="tabs tabs-bordered mb-4">
+              <a
+                role="tab"
+                className={`tab ${filterType === "all" ? "tab-active text-[#432C81]" : "text-gray-500"}`}
                 onClick={() => setFilterType("all")}
-                className={`px-4 py-2 text-sm font-medium transition-all ${
-                  filterType === "all"
-                    ? "text-[#432C81] border-b-2 border-[#432C81]"
-                    : "text-gray-500 hover:text-[#432C81]"
-                }`}
               >
                 📋 Semua Pasien ({allPets.length})
-              </button>
-              <button
+              </a>
+              <a
+                role="tab"
+                className={`tab ${filterType === "dogs" ? "tab-active text-[#432C81]" : "text-gray-500"}`}
                 onClick={() => setFilterType("dogs")}
-                className={`px-4 py-2 text-sm font-medium transition-all ${
-                  filterType === "dogs"
-                    ? "text-[#432C81] border-b-2 border-[#432C81]"
-                    : "text-gray-500 hover:text-[#432C81]"
-                }`}
               >
                 🐕 Anjing ({dogsPets.length})
-              </button>
-              <button
+              </a>
+              <a
+                role="tab"
+                className={`tab ${filterType === "cats" ? "tab-active text-[#432C81]" : "text-gray-500"}`}
                 onClick={() => setFilterType("cats")}
-                className={`px-4 py-2 text-sm font-medium transition-all ${
-                  filterType === "cats"
-                    ? "text-[#432C81] border-b-2 border-[#432C81]"
-                    : "text-gray-500 hover:text-[#432C81]"
-                }`}
               >
                 🐈 Kucing ({catsPets.length})
-              </button>
+              </a>
             </div>
 
             {/* Konten Tabel */}
@@ -194,41 +230,88 @@ export default function Pets() {
             <div className="flex justify-center gap-4">
               <div>
                 <FaDog className="text-blue-500 mx-auto text-xl" />
-                <span className="text-sm">{pets.filter(p => p.type === "Dog").length} Anjing</span>
+                <span className="text-sm">
+                  {pets.filter((p) => p.type === "Dog").length} Anjing
+                </span>
               </div>
               <div>
                 <FaCat className="text-orange-500 mx-auto text-xl" />
-                <span className="text-sm">{pets.filter(p => p.type === "Cat").length} Kucing</span>
+                <span className="text-sm">
+                  {pets.filter((p) => p.type === "Cat").length} Kucing
+                </span>
               </div>
             </div>
           </Card>
           <Card title="Status Kesehatan" className="text-center">
-            <Badge type="success">Sehat: {pets.filter(p => p.healthStatus === "Healthy").length}</Badge>
-            <Badge type="warning" className="ml-2">Sedang Dirawat: {pets.filter(p => p.healthStatus === "Under Treatment").length}</Badge>
+            <Badge type="success">
+              Sehat: {pets.filter((p) => p.healthStatus === "Healthy").length}
+            </Badge>
+            <Badge type="warning" className="ml-2">
+              Sedang Dirawat:{" "}
+              {pets.filter((p) => p.healthStatus === "Under Treatment").length}
+            </Badge>
           </Card>
         </div>
       </Container>
 
       {/* Modal Detail */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Detail Pasien">
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Detail Pasien"
+      >
         {selectedPet && (
           <div className="space-y-3">
-            <p><strong>ID:</strong> {selectedPet.id}</p>
-            <p><strong>Nama:</strong> {selectedPet.name}</p>
-            <p><strong>Jenis:</strong> {translatePetType(selectedPet.type)}</p>
-            <p><strong>Ras:</strong> {selectedPet.breed}</p>
-            <p><strong>Umur:</strong> {selectedPet.age} tahun</p>
-            <p><strong>Jenis Kelamin:</strong> {translateGender(selectedPet.gender)}</p>
-            <p><strong>Berat:</strong> {selectedPet.weight}</p>
-            <p><strong>Status:</strong> <Badge type={getBadgeType(selectedPet.healthStatus)}>{translateHealthStatus(selectedPet.healthStatus)}</Badge></p>
-            <p><strong>Pemilik:</strong> {getOwnerName(selectedPet.id, owners)}</p>
-            <Button type="primary" onClick={() => setIsModalOpen(false)} className="w-full mt-4">Tutup</Button>
+            <p>
+              <strong>ID:</strong> {selectedPet.id}
+            </p>
+            <p>
+              <strong>Nama:</strong> {selectedPet.name}
+            </p>
+            <p>
+              <strong>Jenis:</strong> {translatePetType(selectedPet.type)}
+            </p>
+            <p>
+              <strong>Ras:</strong> {selectedPet.breed}
+            </p>
+            <p>
+              <strong>Umur:</strong> {selectedPet.age} tahun
+            </p>
+            <p>
+              <strong>Jenis Kelamin:</strong>{" "}
+              {translateGender(selectedPet.gender)}
+            </p>
+            <p>
+              <strong>Berat:</strong> {selectedPet.weight}
+            </p>
+            <p>
+              <strong>Status:</strong>{" "}
+              <Badge type={getBadgeType(selectedPet.healthStatus)}>
+                {translateHealthStatus(selectedPet.healthStatus)}
+              </Badge>
+            </p>
+            <p>
+              <strong>Pemilik:</strong> {getOwnerName(selectedPet.id, owners)}
+            </p>
+            <Button
+              type="primary"
+              onClick={() => setIsModalOpen(false)}
+              className="w-full mt-4"
+            >
+              Tutup
+            </Button>
           </div>
         )}
       </Modal>
 
       {/* Toast */}
-      {showToast && <Toast message={toastMessage} type="success" onClose={() => setShowToast(false)} />}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type="success"
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </div>
   );
 }
