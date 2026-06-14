@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import PageHeader from "../components/PageHeader";
 import Container from "./Components/Container";
 import Card from "./Components/Card";
@@ -21,6 +21,27 @@ export default function ComponentShowcase() {
   const [showToast, setShowToast] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", category: "" });
+
+  const [demoName, setDemoName] = useState("");
+  const [demoCount, setDemoCount] = useState(0);
+  const [effectMessage, setEffectMessage] = useState("Aplikasi belum melakukan efek apapun.");
+  const [focusMessage, setFocusMessage] = useState("Tekan tombol untuk fokus input demo.");
+  const nameInputRef = useRef(null);
+  const renderCountRef = useRef(0);
+
+  useEffect(() => {
+    renderCountRef.current += 1;
+    setEffectMessage(`useEffect dijalankan karena demoName atau demoCount berubah. Render ke-${renderCountRef.current}.`);
+  }, [demoName, demoCount]);
+
+  const handleDemoFocus = () => {
+    if (nameInputRef.current) {
+      nameInputRef.current.focus();
+      setFocusMessage("Input demo sekarang sudah difokuskan menggunakan useRef.");
+    }
+  };
+
+  const handleIncrement = () => setDemoCount((prev) => prev + 1);
 
   const tableHeaders = ["No", "Nama", "Email", "Status"];
   const tableData = [
@@ -104,6 +125,81 @@ export default function ComponentShowcase() {
               <TextArea label="Catatan" name="notes" placeholder="Masukkan catatan..." />
             </div>
             <Button type="primary" className="mt-4">Kirim</Button>
+          </Card>
+        </div>
+
+        {/* Hooks Demo */}
+        <div className="mt-8">
+          <Card title="Demo useState, useEffect, useRef">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nama Demo</label>
+                  <input
+                    ref={nameInputRef}
+                    type="text"
+                    placeholder="Ketik nama di sini"
+                    value={demoName}
+                    onChange={(e) => setDemoName(e.target.value)}
+                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#432C81] focus:border-[#432C81] outline-none transition-all text-black"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-3 mb-4">
+                  <Button type="success" onClick={handleIncrement}>Tambah Counter</Button>
+                  <Button type="secondary" onClick={handleDemoFocus}>Fokus Input</Button>
+                </div>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p><strong>useState</strong> menyimpan nilai <code>demoName</code> dan <code>demoCount</code>.</p>
+                  <p><strong>useEffect</strong> mengeksekusi setiap kali <code>demoName</code> atau <code>demoCount</code> berubah.</p>
+                  <p><strong>useRef</strong> menyimpan referensi input tanpa memaksa render ulang.</p>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <h4 className="font-semibold mb-3">Hasil Demo</h4>
+                <p className="mb-2"><strong>Nama saat ini:</strong> {demoName || "Belum diisi"}</p>
+                <p className="mb-2"><strong>Counter:</strong> {demoCount}</p>
+                <p className="mb-2 text-sm text-gray-600">{effectMessage}</p>
+                <p className="text-sm text-gray-600">{focusMessage}</p>
+                <p className="mt-3 text-xs text-gray-500">Jumlah render komponen: {renderCountRef.current}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              <div className="bg-white rounded-xl border border-indigo-100 p-4">
+                <h5 className="font-semibold mb-2">useState</h5>
+                <ul className="list-disc ml-4 text-sm text-gray-700 space-y-1">
+                  <li><strong>What:</strong> menyimpan nilai input dan counter.</li>
+                  <li><strong>Why:</strong> agar React tahu kapan harus merender ulang tampilan.</li>
+                  <li><strong>Who:</strong> pengguna yang mengetik dan menekan tombol.</li>
+                  <li><strong>When:</strong> saat input berubah atau tombol diklik.</li>
+                  <li><strong>Where:</strong> di halaman demo komponen.</li>
+                  <li><strong>How:</strong> `setState` mengubah state dan memperbarui UI.</li>
+                </ul>
+              </div>
+              <div className="bg-white rounded-xl border border-amber-100 p-4">
+                <h5 className="font-semibold mb-2">useEffect</h5>
+                <ul className="list-disc ml-4 text-sm text-gray-700 space-y-1">
+                  <li><strong>What:</strong> menjalankan side effect saat state berubah.</li>
+                  <li><strong>Why:</strong> agar proses tambahan berjalan di luar render.</li>
+                  <li><strong>Who:</strong> pengguna yang mengubah data demo.</li>
+                  <li><strong>When:</strong> saat `demoName` atau `demoCount` berubah.</li>
+                  <li><strong>Where:</strong> di bagian demo hooks halaman showcase.</li>
+                  <li><strong>How:</strong> dependency array menentukan kapan efek dijalankan.</li>
+                </ul>
+              </div>
+              <div className="bg-white rounded-xl border border-emerald-100 p-4">
+                <h5 className="font-semibold mb-2">useRef</h5>
+                <ul className="list-disc ml-4 text-sm text-gray-700 space-y-1">
+                  <li><strong>What:</strong> menyimpan referensi DOM input.</li>
+                  <li><strong>Why:</strong> karena fokus input tidak perlu state.</li>
+                  <li><strong>Who:</strong> developer dan pengguna saat membuka fokus input.</li>
+                  <li><strong>When:</strong> saat tombol fokus diklik.</li>
+                  <li><strong>Where:</strong> di bagian demo hook `useRef`.</li>
+                  <li><strong>How:</strong> menggunakan `ref.current` untuk memanggil `focus()`.</li>
+                </ul>
+              </div>
+            </div>
           </Card>
         </div>
 

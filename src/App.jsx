@@ -1,6 +1,7 @@
 import "./assets/tailwind.css";
 import { Routes, Route } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
+import RequireAuth from "./lib/RequireAuth";
 import AuthLayout from "./layouts/AuthLayout";
 import Loading from "./components/Loading";
 import React, { Suspense } from "react";
@@ -17,9 +18,14 @@ function App() {
   const FormPetOwner = React.lazy(() => import("./pages/FormPetOwner"))
   const Veterinarians = React.lazy(() => import("./pages/Veterinarians"))
   const FormVeterinarian = React.lazy(() => import("./pages/FormVeterinarian"))
+  const CustomerCRM = React.lazy(() => import("./pages/CustomerCRM"))
+  const CampaignPromo = React.lazy(() => import("./pages/CampaignPromo"))
+  const FeedbackKomplain = React.lazy(() => import("./pages/FeedbackKomplain"))
   const ComponentShowcase = React.lazy(() => import("./pages/ComponentShowcase"));
+  const CreateUser = React.lazy(() => import("./pages/auth/CreateUser"));
   
   // Detail Pages (Dynamic Route)
+
   const PetDetail = React.lazy(() => import("./pages/PetDetail"))
   const AppointmentDetail = React.lazy(() => import("./pages/AppointmentDetail"))
   const PetOwnerDetail = React.lazy(() => import("./pages/PetOwnerDetail"))
@@ -35,7 +41,7 @@ function App() {
   return (
     <Suspense fallback={<Loading />}>
     <Routes>
-      <Route element={<MainLayout />}>
+      <Route element={<RequireAuth><MainLayout /></RequireAuth>}>
           {/* Main Routes */}
           <Route path="/" element={<Dashboard />} />
           <Route path="/pets" element={<Pets />} />
@@ -44,9 +50,13 @@ function App() {
           <Route path="/add-appointment" element={<FormAppointment />} />
           <Route path="/pet-owners" element={<PetOwners />} />
           <Route path="/add-pet-owner" element={<FormPetOwner />} />
+          <Route path="/customer-crm" element={<CustomerCRM />} />
+          <Route path="/campaign-promo" element={<CampaignPromo />} />
+          <Route path="/feedback-komplain" element={<FeedbackKomplain />} />
           <Route path="/veterinarians" element={<Veterinarians />} />
           <Route path="/add-veterinarian" element={<FormVeterinarian />} />
           <Route path="/showcase" element={<ComponentShowcase />} />
+          <Route path="/create-user" element={<React.Suspense fallback={<Loading />}><CreateUser /></React.Suspense>} />
           
           {/* Dynamic Detail Routes */}
           <Route path="/pets/:id" element={<PetDetail />} />

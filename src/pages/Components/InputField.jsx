@@ -1,4 +1,6 @@
-export default function InputField({ label, type = "text", name, placeholder, value, onChange, required = false, icon: Icon }) {
+import { forwardRef } from "react";
+
+const InputField = forwardRef(({ label, type = "text", name, placeholder, value, onChange, required = false, icon: Icon }, ref) => {
   return (
     <div className="mb-4">
       {label && (
@@ -8,6 +10,7 @@ export default function InputField({ label, type = "text", name, placeholder, va
         </label>
       )}
       <input
+        ref={ref}
         type={type}
         name={name}
         placeholder={placeholder}
@@ -18,4 +21,6 @@ export default function InputField({ label, type = "text", name, placeholder, va
       />
     </div>
   );
-}
+});
+
+export default InputField;

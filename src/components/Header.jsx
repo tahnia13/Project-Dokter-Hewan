@@ -1,12 +1,18 @@
-import { useState } from "react";
-import { FaBell, FaSearch, FaMoon, FaSun, FaBars } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { FaBell, FaSearch, FaMoon, FaSun, FaBars, FaSignOutAlt } from "react-icons/fa";
 import { SlSettings } from "react-icons/sl";
 import SearchModal from "./SearchModal";
+import { getSession, clearSession } from "../lib/auth";
 
 export default function Header({ onMenuClick }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    setSession(getSession());
+  }, []);
 
   return (
     <>
@@ -53,23 +59,26 @@ export default function Header({ onMenuClick }) {
             <div className="flex items-center gap-2">
               <div className="text-right hidden md:block">
                 <p className="text-[10px] text-gray-400 font-inter">Selamat datang,</p>
-                <p className="text-xs font-bold text-[#432C81] font-nunito">Dr. Tahnia</p>
+                <p className="text-xs font-bold text-[#432C81] font-nunito">{session?.name || 'Dr. Tahnia'}</p>
               </div>
               
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#432C81] to-[#58315A] rounded-full blur-sm opacity-60"></div>
                 {!imageError ? (
                   <img
-                    src="/img/cewekCantik.png"
-                    alt="Dr. Tahnia"
+                    src={session?.avatar || "/img/cewekCantik.png"}
+                    alt={session?.name || "Dr. Tahnia"}
                     className="w-8 h-8 rounded-full object-cover border-2 border-white relative z-10 cursor-pointer"
                     onError={() => setImageError(true)}
                   />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center relative z-10 cursor-pointer">
-                    <span className="text-white font-bold text-[10px] font-nunito">DT</span>
+                    <span className="text-white font-bold text-[10px] font-nunito">{(session?.name || 'DT').split(' ').map(n=>n[0]).slice(0,2).join('')}</span>
                   </div>
                 )}
+                <button onClick={() => { clearSession(); window.location.href = '/login'; }} className="ml-2 text-[#432C81] p-1 rounded-md" title="Logout">
+                  <FaSignOutAlt />
+                </button>
               </div>
             </div>
           </div>

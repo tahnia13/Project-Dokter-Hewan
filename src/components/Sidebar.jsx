@@ -3,6 +3,9 @@ import {
   FaPaw, 
   FaCalendarAlt, 
   FaUsers, 
+  FaAddressCard,
+  FaBullhorn,
+  FaComments,
   FaUserMd,
   FaSignOutAlt, 
   FaHeartbeat, 
@@ -31,8 +34,13 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
     { path: "/", icon: FaHome, label: "Beranda" },
     { path: "/pets", icon: FaPaw, label: "Pasien" },
     { path: "/appointments", icon: FaCalendarAlt, label: "Janji Temu" },
+    { path: "/customer-crm", icon: FaAddressCard, label: "Customer CRM" },
+    { path: "/campaign-promo", icon: FaBullhorn, label: "Campaign Promo" },
+    { path: "/feedback-komplain", icon: FaComments, label: "Feedback & Komplain" },
     { path: "/pet-owners", icon: FaUsers, label: "Pemilik" },
     { path: "/veterinarians", icon: FaUserMd, label: "Dokter" },
+    { path: "/create-user", icon: FaPlus, label: "Kelola User" },
+    { path: "/showcase", icon: FaCube, label: "Demo" },
   ];
 
   return (
@@ -114,12 +122,6 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
           ))}
         </ul>
       </div>
-      <li>
-  <NavLink to="/showcase" className={menuClass}>
-    <FaCube className="text-xl" />
-    <span>Demo</span>
-  </NavLink>
-</li>
 
       {/* Footer - Style DocSwift */}
       <div className="p-4 border-t border-[#CCC3FF]/30">

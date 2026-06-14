@@ -1,65 +1,118 @@
-import { Link } from "react-router-dom";
+// src/pages/Register.jsx
 import { useState } from "react";
-import { FaEnvelope, FaLock, FaUser, FaPhone, FaPaw, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { registerUser } from "../../lib/auth";
+import { FaPaw, FaLock, FaUser, FaEnvelope } from "react-icons/fa";
 
 export default function Register() {
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" });
-  const [showPassword, setShowPassword] = useState(false);
-  const handleSubmit = (e) => { e.preventDefault(); if (formData.password !== formData.confirmPassword) { alert("Password tidak sama!"); return; } alert("Pendaftaran berhasil!"); window.location.href = "/login"; };
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (form.password !== form.confirmPassword) {
+      alert("Konfirmasi password tidak cocok!");
+      return;
+    }
+
+    setLoading(true);
+    const success = await registerUser({
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      role: "user" // Default role untuk pendaftaran mandiri
+    });
+    setLoading(false);
+
+    if (success) {
+      alert("Pendaftaran berhasil! Silakan login dengan akun baru Anda.");
+      navigate("/login");
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="text-center mb-4">
-        <div className="bg-gradient-primary w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
-          <FaPaw className="text-white text-2xl" />
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-inter">
+      <div className="bg-white p-8 rounded-2xl shadow-md border border-slate-200/60 w-full max-w-md">
+        <div className="text-center mb-6">
+          <div className="bg-gradient-to-tr from-[#432C81] to-[#6D47B8] w-12 h-12 rounded-xl flex items-center justify-center mx-auto shadow-md">
+            <FaPaw className="text-white text-xl" />
+          </div>
+          <h1 className="text-xl font-bold text-slate-900 mt-3 uppercase tracking-tight">Buat Akun Baru</h1>
+          <p className="text-xs text-slate-500 mt-1">Daftar sekarang untuk mengakses layanan Paws & Care</p>
         </div>
-        <h3 className="text-lg font-bold text-[#432C81] font-nunito">Buat Akun Baru</h3>
-        <p className="text-xs text-gray-500 mt-0.5">Daftar untuk mengelola dashboard klinik</p>
-      </div>
-      <div>
-        <label className="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap</label>
-        <div className="relative">
-          <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-          <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="input-primary pl-9" placeholder="Dr. Sarah Wijaya" required />
-        </div>
-      </div>
-      <div>
-        <label className="block text-xs font-semibold text-gray-600 mb-1">Email</label>
-        <div className="relative">
-          <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-          <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="input-primary pl-9" placeholder="dokter@petcare.com" required />
-        </div>
-      </div>
-      <div>
-        <label className="block text-xs font-semibold text-gray-600 mb-1">Telepon</label>
-        <div className="relative">
-          <FaPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-          <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="input-primary pl-9" placeholder="0812-3456-7890" />
-        </div>
-      </div>
-      <div>
-        <label className="block text-xs font-semibold text-gray-600 mb-1">Password</label>
-        <div className="relative">
-          <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-          <input type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="input-primary pl-9 pr-9" placeholder="••••••••" required />
-          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            {showPassword ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
+
+        <form onSubmit={handleRegister} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap</label>
+            <div className="relative">
+              <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+              <input
+                type="text" required
+                value={form.name}
+                onChange={(e) => setForm({...form, name: e.target.value})}
+                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-9 pr-3.5 outline-none focus:border-purple-400 transition-all"
+                placeholder="Nama Lengkap Anda"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Alamat Email</label>
+            <div className="relative">
+              <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+              <input
+                type="email" required
+                value={form.email}
+                onChange={(e) => setForm({...form, email: e.target.value})}
+                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-9 pr-3.5 outline-none focus:border-purple-400 transition-all"
+                placeholder="nama@domain.com"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
+            <div className="relative">
+              <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+              <input
+                type="password" required
+                value={form.password}
+                onChange={(e) => setForm({...form, password: e.target.value})}
+                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-9 pr-3.5 outline-none focus:border-purple-400 transition-all"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Konfirmasi Password</label>
+            <input
+              type="password" required
+              value={form.confirmPassword}
+              onChange={(e) => setForm({...form, confirmPassword: e.target.value})}
+              className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3.5 outline-none focus:border-purple-400 transition-all"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button
+            type="submit" disabled={loading}
+            className="w-full py-2.5 bg-[#432C81] hover:bg-[#342264] text-white font-bold text-xs uppercase rounded-xl transition-all shadow-xs"
+          >
+            {loading ? "Mendaftarkan..." : "Daftar Akun"}
           </button>
+        </form>
+
+        <div className="text-center mt-4">
+          <p className="text-xs text-slate-500">
+            Sudah punya akun?{" "}
+            <button onClick={() => navigate("/login")} className="text-[#432C81] font-bold hover:underline">
+              Login di sini
+            </button>
+          </p>
         </div>
       </div>
-      <div>
-        <label className="block text-xs font-semibold text-gray-600 mb-1">Konfirmasi Password</label>
-        <div className="relative">
-          <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-          <input type={showPassword ? "text" : "password"} value={formData.confirmPassword} onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})} className="input-primary pl-9" placeholder="••••••••" required />
-        </div>
-      </div>
-      <button type="submit" className="w-full btn-primary py-2 text-sm flex items-center justify-center gap-2">
-        <FaPaw size={14} /> Daftar
-      </button>
-      <p className="text-center text-xs text-gray-500">
-        Sudah punya akun? <Link to="/login" className="text-[#432C81] font-semibold">Masuk</Link>
-      </p>
-    </form>
+    </div>
   );
 }
