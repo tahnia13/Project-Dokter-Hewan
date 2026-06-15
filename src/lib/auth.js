@@ -1,12 +1,12 @@
 // src/lib/auth.js
-import { supabase } from './supabase';
+import { supabase } from "./supabase";
 
 /**
- * 1. FUNGSI LOGIN USER (Real Supabase Auth)
- * Dipakai oleh Halaman Login untuk masuk ke sistem
+ * FUNGSI LOGIN USER + AMBIL ROLE
  */
-export const loginUser = async (email, password) => {
+export async function loginUser(email, password) {
   try {
+    // 1. Validasi email dan password ke Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -14,38 +14,45 @@ export const loginUser = async (email, password) => {
 
     if (authError) throw authError;
 
-    // Ambil detail metadata (nama & role) dari tabel profiles berdasarkan ID user
+    const userAuth = authData.user;
+
+    // 2. Ambil data pelengkap (nama & role) dari tabel profiles cloud
     const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('name, role')
-      .eq('id', authData.user.id)
+      .from("profiles")
+      .select("name, role")
+      .eq("id", userAuth.id)
       .single();
 
     if (profileError) throw profileError;
 
-    // Struktur data user yang disesuaikan dengan kebutuhan aplikasi Anda
-    const loggedInUser = {
-      id: authData.user.id,
-      email: authData.user.email,
+    // 3. Gabungkan data auth dan profile menjadi satu objek session
+    const userData = {
+      id: userAuth.id,
+      email: userAuth.email,
       name: profileData.name,
-      role: profileData.role,
+      role: profileData.role, // Data role (admin/vet/user) sekarang ikut terbawa!
     };
 
-    // Simpan ke localStorage agar guard routing dan session tetap terjaga saat refresh
-    localStorage.setItem("current_user", JSON.stringify(loggedInUser));
-    return loggedInUser;
+    // 4. Simpan ke localStorage browser sebagai session aktif
+    localStorage.setItem("paws_session", JSON.stringify(userData));
+
+    return userData;
   } catch (error) {
-    console.error("Login Error:", error.message);
-    alert("Gagal Masuk: " + error.message);
+    alert(`Gagal Masuk: ${error.message}`);
     return null;
   }
-};
+}
 
 /**
  * 2. FUNGSI PENDAFTARAN / REGISTRASI USER BARU
  * Dipakai bersama oleh Halaman Pendaftaran Umum & Halaman Admin Kelola User
  */
-export const registerUser = async ({ name, email, password, role = 'user' }) => {
+export const registerUser = async ({
+  name,
+  email,
+  password,
+  role = "user",
+}) => {
   try {
     // Daftarkan email & password ke Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -57,16 +64,14 @@ export const registerUser = async ({ name, email, password, role = 'user' }) => 
 
     if (authData?.user) {
       // Masukkan informasi pelengkap (nama & role) ke tabel custom public.profiles
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          { 
-            id: authData.user.id, 
-            name: name, 
-            email: email, 
-            role: role 
-          }
-        ]);
+      const { error: profileError } = await supabase.from("profiles").insert([
+        {
+          id: authData.user.id,
+          name: name,
+          email: email,
+          role: role,
+        },
+      ]);
 
       if (profileError) throw profileError;
       return authData.user;
@@ -82,39 +87,40 @@ export const registerUser = async ({ name, email, password, role = 'user' }) => 
  * 3. READ: AMBIL ALL PROFILES USER
  * Dipakai oleh Halaman Admin untuk menampilkan daftar user aktif di Grid Card
  */
-export const getUsers = async () => {
+/**
+ * FUNGSI MENGAMBIL SEMUA USER
+ * Membaca seluruh data profiles dari cloud database
+ */
+export async function getUsers() {
   try {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .from("profiles")
+      .select("*")
+      .order("name", { ascending: true });
 
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error("Fetch Users Error:", error.message);
+    console.error("Gagal mengambil data user:", error.message);
     return [];
   }
-};
+}
 
 /**
  * 4. DELETE: HAPUS PROFIL USER
  * Dipakai oleh Admin untuk mencabut hak akses user tertentu
  */
-export const deleteUser = async (id) => {
+export async function deleteUser(id) {
   try {
-    const { error } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from("profiles").delete().eq("id", id);
 
     if (error) throw error;
     return true;
   } catch (error) {
-    console.error("Delete Profil Error:", error.message);
+    alert(`Gagal menghapus user: ${error.message}`);
     return false;
   }
-};
+}
 
 /**
  * 5. FUNGSI LOGOUT & BERSIHKAN SESSION (Penyelesaian Kunci Header.jsx)
@@ -153,20 +159,23 @@ export const getSession = () => {
  */
 export const getCurrentUser = async () => {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
     if (error || !user) return getSession();
 
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('name, role')
-      .eq('id', user.id)
+      .from("profiles")
+      .select("name, role")
+      .eq("id", user.id)
       .single();
 
     return {
       id: user.id,
       email: user.email,
       name: profile?.name || "User",
-      role: profile?.role || "user"
+      role: profile?.role || "user",
     };
   } catch (e) {
     return getSession();

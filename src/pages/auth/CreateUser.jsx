@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { FaPaw, FaTrash, FaUserPlus, FaSearch, FaLock, FaUserShield, FaUserMd, FaUser, FaArrowLeft, FaEnvelope, FaIdBadge, FaTimes } from "react-icons/fa";
+import { FaPaw, FaTrash, FaUserPlus, FaSearch, FaLock, FaUserShield, FaUserMd, FaUser, FaArrowLeft, FaEnvelope, FaIdBadge, FaTimes, FaEdit } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { getUsers, registerUser, deleteUser } from "../../lib/auth";
+import { supabase } from "../../lib/supabase"; // Import supabase untuk fitur update langsung
 
 const roleLabels = {
   admin: "Admin",
@@ -17,6 +18,8 @@ export default function CreateUser() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false); // State pelacak mode Edit
+  const [editingUserId, setEditingUserId] = useState(null); // State penyimpan ID user yang di-edit
 
   const [form, setForm] = useState({
     name: "",
@@ -43,28 +46,80 @@ export default function CreateUser() {
     fetchUsersData();
   }, []);
 
+  // Pemicu ketika tombol Edit di card ditekan
+  const handleEditClick = (user) => {
+    setIsEditMode(true);
+    setEditingUserId(user.id);
+    setForm({
+      name: user.name,
+      email: user.email,
+      password: "password_placeholder", // Placeholder agar validasi input required terpenuhi
+      confirmPassword: "password_placeholder",
+      role: user.role,
+    });
+    setShowForm(true);
+    // Menggulung halaman ke atas otomatis agar form langsung terlihat
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Pemicu pendaftaran form baru kosongan
+  const handleAddNewClick = () => {
+    setIsEditMode(false);
+    setEditingUserId(null);
+    setForm({ name: "", email: "", password: "", confirmPassword: "", role: "user" });
+    setShowForm(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (form.password !== form.confirmPassword) {
-      alert("Password tidak sama!");
-      return;
-    }
+    if (isEditMode) {
+      // ========== PROSES UPDATE USER ==========
+      setSubmitting(true);
+      try {
+        const { error } = await supabase
+          .from("profiles")
+          .update({
+            name: form.name.trim(),
+            role: form.role,
+          })
+          .eq("id", editingUserId);
 
-    setSubmitting(true);
-    const created = await registerUser({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      password: form.password,
-      role: form.role,
-    });
-    setSubmitting(false);
+        if (error) throw error;
 
-    if (created) {
-      alert(`User berhasil dibuat di Supabase Auth!`);
-      setForm({ name: "", email: "", password: "", confirmPassword: "", role: "user" });
-      setShowForm(false);
-      fetchUsersData(); // Ambil data terbaru langsung dari tabel profiles
+        alert("Data profil pengguna berhasil diperbarui!");
+        setForm({ name: "", email: "", password: "", confirmPassword: "", role: "user" });
+        setShowForm(false);
+        setIsEditMode(false);
+        setEditingUserId(null);
+        fetchUsersData();
+      } catch (error) {
+        alert("Gagal memperbarui profil: " + error.message);
+      } finally {
+        setSubmitting(false);
+      }
+    } else {
+      // ========== PROSES REGISTRASI BARU ==========
+      if (form.password !== form.confirmPassword) {
+        alert("Password tidak sama!");
+        return;
+      }
+
+      setSubmitting(true);
+      const created = await registerUser({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        role: form.role,
+      });
+      setSubmitting(false);
+
+      if (created) {
+        alert(`User berhasil dibuat di Supabase Auth!`);
+        setForm({ name: "", email: "", password: "", confirmPassword: "", role: "user" });
+        setShowForm(false);
+        fetchUsersData();
+      }
     }
   };
 
@@ -128,19 +183,23 @@ export default function CreateUser() {
           </button>
         </div>
 
-        {/* AREA FORM ATAS */}
+        {/* AREA FORM DINAMIS (TAMBAH / EDIT) */}
         {showForm && (
           <div className="bg-white border-2 border-purple-200 rounded-2xl shadow-md p-6 mb-6 relative animate-fadeIn">
             <button 
-              onClick={() => setShowForm(false)}
+              onClick={() => { setShowForm(false); setIsEditMode(false); }}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <FaTimes size={14} />
             </button>
 
             <div className="border-b border-slate-100 pb-3 mb-4">
-              <h2 className="text-sm font-bold text-slate-900 tracking-wider uppercase">Registrasi Akun Supabase Baru</h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">Kredensial login cloud akan langsung di-generate otomatis</p>
+              <h2 className="text-sm font-bold text-slate-900 tracking-wider uppercase">
+                {isEditMode ? "Ubah Data Profil Pengguna" : "Registrasi Akun Supabase Baru"}
+              </h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                {isEditMode ? "Mengubah nama panggilan atau wewenang sistem kerja karyawan" : "Kredensial login cloud akan langsung di-generate otomatis"}
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -159,9 +218,10 @@ export default function CreateUser() {
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">Alamat Email</label>
                 <input
                   type="email" required
+                  disabled={isEditMode} // Email di kunci saat mode edit demi integritas data Auth Supabase
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full text-xs bg-slate-50/60 border border-slate-200 focus:border-purple-400 focus:bg-white rounded-xl py-2.5 px-3.5 outline-none transition-all"
+                  className="w-full text-xs bg-slate-50/60 border border-slate-200 focus:border-purple-400 focus:bg-white rounded-xl py-2.5 px-3.5 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed font-medium text-slate-600"
                   placeholder="contoh@pawsandcare.com"
                 />
               </div>
@@ -179,34 +239,39 @@ export default function CreateUser() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Kata Sandi (Password)</label>
-                <div className="relative">
-                  <FaLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
-                  <input
-                    type="password" required
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="w-full text-xs bg-slate-50/60 border border-slate-200 focus:border-purple-400 focus:bg-white rounded-xl py-2.5 pl-9 pr-3.5 font-mono outline-none transition-all"
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
+              {/* Tampilkan kolom input kata sandi HANYA jika sedang mendaftarkan user baru */}
+              {!isEditMode && (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Kata Sandi (Password)</label>
+                    <div className="relative">
+                      <FaLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+                      <input
+                        type="password" required={!isEditMode}
+                        value={form.password}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                        className="w-full text-xs bg-slate-50/60 border border-slate-200 focus:border-purple-400 focus:bg-white rounded-xl py-2.5 pl-9 pr-3.5 font-mono outline-none transition-all"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Ulangi Kata Sandi</label>
-                <input
-                  type="password" required
-                  value={form.confirmPassword}
-                  onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                  className="w-full text-xs bg-slate-50/60 border border-slate-200 focus:border-purple-400 focus:bg-white rounded-xl py-2.5 px-3.5 font-mono outline-none transition-all"
-                  placeholder="••••••••"
-                />
-              </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Ulangi Kata Sandi</label>
+                    <input
+                      type="password" required={!isEditMode}
+                      value={form.confirmPassword}
+                      onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                      className="w-full text-xs bg-slate-50/60 border border-slate-200 focus:border-purple-400 focus:bg-white rounded-xl py-2.5 px-3.5 font-mono outline-none transition-all"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </>
+              )}
 
               <div className="md:col-span-2 flex justify-end gap-3 pt-2">
                 <button 
-                  type="button" onClick={() => setShowForm(false)}
+                  type="button" onClick={() => { setShowForm(false); setIsEditMode(false); }}
                   className="py-2.5 px-5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase rounded-xl transition-all"
                 >
                   Batal
@@ -215,7 +280,7 @@ export default function CreateUser() {
                   type="submit" disabled={submitting}
                   className="py-2.5 px-6 bg-[#432C81] hover:bg-[#342264] text-white font-bold text-xs uppercase rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs"
                 >
-                  <FaUserPlus size={13} /> {submitting ? "Memproses..." : "Konfirmasi Buat User"}
+                  <FaUserPlus size={13} /> {submitting ? "Memproses..." : isEditMode ? "Simpan Perubahan" : "Konfirmasi Buat User"}
                 </button>
               </div>
             </form>
@@ -234,14 +299,12 @@ export default function CreateUser() {
               <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-xl border border-blue-100">
                 {filteredUsers.length} Akun Terdaftar
               </span>
-              {!showForm && (
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="flex items-center gap-2 text-xs font-bold text-white bg-[#432C81] hover:bg-[#342264] transition-all py-2.5 px-4 rounded-xl shadow-xs"
-                >
-                  <FaUserPlus size={12} /> Tambah User Baru
-                </button>
-              )}
+              <button
+                onClick={handleAddNewClick}
+                className="flex items-center gap-2 text-xs font-bold text-white bg-[#432C81] hover:bg-[#342264] transition-all py-2.5 px-4 rounded-xl shadow-xs"
+              >
+                <FaUserPlus size={12} /> Tambah User Baru
+              </button>
             </div>
           </div>
 
@@ -293,14 +356,24 @@ export default function CreateUser() {
                       </div>
                     </div>
 
-                    <div className="flex justify-end pt-1">
+                    {/* GRUP DUA TOMBOL AKSI: EDIT DAN HAPUS */}
+                    <div className="flex justify-end gap-2 pt-1 border-t border-slate-100/60">
                       <button
-                        type="button" onClick={() => handleDelete(u.id)}
+                        type="button" 
+                        onClick={() => handleEditClick(u)}
+                        className="flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white border border-blue-100 transition-all shadow-3xs"
+                      >
+                        <FaEdit size={9} /> Edit Profil
+                      </button>
+                      <button
+                        type="button" 
+                        onClick={() => handleDelete(u.id)}
                         className="flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-[10px] font-bold text-rose-600 bg-rose-50/50 hover:bg-rose-600 hover:text-white border border-rose-100 transition-all shadow-3xs"
                       >
                         <FaTrash size={9} /> Hapus Akses
                       </button>
                     </div>
+
                   </div>
                 );
               })}

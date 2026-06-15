@@ -1,14 +1,13 @@
-// src/pages/auth/Login.jsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaEnvelope, FaLock, FaPaw, FaEye, FaEyeSlash } from "react-icons/fa";
-// Gunakan import path relatif '../../' yang aman agar terhindar dari error import Vite
+import { FaEnvelope, FaLock, FaPaw, FaEye, FaEyeSlash, FaUserShield } from "react-icons/fa";
 import { loginUser } from "../../lib/auth"; 
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user"); // State untuk menampung pilihan role
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -16,13 +15,18 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     
-    // Menggunakan fungsi login riil dari Supabase yang sudah kita set di auth.js
+    // Kirim email dan password ke fungsi login Supabase
     const user = await loginUser(email.trim(), password);
     setLoading(false);
 
     if (user) {
-      alert(`Selamat datang kembali, ${user.name}!`);
-      // Menggunakan navigate() bawaan react-router-dom agar transisi halaman mulus tanpa hard-refresh browser
+      // Validasi tambahan: Memastikan role yang dipilih di form sesuai dengan role asli di database cloud
+      if (user.role !== role) {
+        alert(`Gagal Masuk: Hak akses Anda terdaftar sebagai ${user.role.toUpperCase()}, bukan ${role.toUpperCase()}!`);
+        return;
+      }
+
+      alert(`Selamat datang kembali, ${user.name} (${user.role.toUpperCase()})!`);
       navigate("/"); 
     }
   };
@@ -32,16 +36,16 @@ export default function Login() {
       <div className="bg-white p-8 rounded-2xl shadow-md border border-slate-200/60 w-full max-w-sm">
         
         <form onSubmit={handleLoginSubmit} className="space-y-4">
-          {/* Bagian Header Form */}
+          {/* Header Form */}
           <div className="text-center mb-5">
             <div className="bg-gradient-to-tr from-[#432C81] to-[#6D47B8] w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
               <FaPaw className="text-white text-2xl" />
             </div>
             <h3 className="text-lg font-bold text-[#432C81] font-nunito uppercase tracking-tight">Login ke Akun Anda</h3>
-            <p className="text-xs text-gray-500 mt-0.5">Masukkan email dan password cloud Paws & Care Anda</p>
+            <p className="text-xs text-gray-500 mt-0.5">Masukkan email, password, dan wewenang cloud Anda</p>
           </div>
 
-          {/* Input Field: Email */}
+          {/* Input: Email */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Email Address</label>
             <div className="relative">
@@ -57,7 +61,7 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Input Field: Password + Toggle Eye Visibility */}
+          {/* Input: Password */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Password</label>
             <div className="relative">
@@ -80,12 +84,29 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Lupa Password Link */}
+          {/* INPUT BARU: Pilihan Hak Akses (Role) */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Masuk Sebagai (Role)</label>
+            <div className="relative">
+              <FaUserShield className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs" />
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full text-xs bg-slate-50 border border-slate-200 focus:border-purple-400 focus:bg-white rounded-xl py-2.5 pl-9 pr-3.5 outline-none cursor-pointer font-bold text-slate-700 appearance-none"
+              >
+                <option value="admin">Admin Utama</option>
+                <option value="vet">Dokter Spesialis (Veterinarian)</option>
+                <option value="user">User Umum / Pemilik Hewan</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Lupa Password */}
           <div className="flex justify-end">
             <Link to="/forgot" className="text-[11px] text-[#432C81] hover:underline">Lupa Password?</Link>
           </div>
 
-          {/* Tombol Submit Dinamis */}
+          {/* Tombol Submit */}
           <button 
             type="submit" 
             disabled={loading}
@@ -95,7 +116,7 @@ export default function Login() {
             {loading ? "Memverifikasi..." : "Masuk"}
           </button>
 
-          {/* Link Registrasi Akun */}
+          {/* Link Registrasi */}
           <p className="text-center text-xs text-gray-500 border-t border-slate-100 mt-5 pt-4">
             Belum punya akun?{" "}
             <Link to="/register" className="text-[#432C81] font-bold hover:underline">
