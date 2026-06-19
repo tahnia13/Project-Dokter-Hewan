@@ -2,7 +2,8 @@
 import { supabase } from "./supabase";
 
 /**
- * FUNGSI LOGIN USER + AMBIL ROLE
+ * 1. FUNGSI LOGIN USER + AMBIL ROLE (SINKRON DATA & SESSION)
+ * Memverifikasi kredensial ke cloud auth, menarik role dari profiles, dan membuat session.
  */
 export async function loginUser(email, password) {
   try {
@@ -30,11 +31,11 @@ export async function loginUser(email, password) {
       id: userAuth.id,
       email: userAuth.email,
       name: profileData.name,
-      role: profileData.role, // Data role (admin/vet/user) sekarang ikut terbawa!
+      role: profileData.role, // Data role (admin/vet/user) otomatis terbawa
     };
 
-    // 4. Simpan ke localStorage browser sebagai session aktif
-    localStorage.setItem("paws_session", JSON.stringify(userData));
+    // 4. MASUKKAN KE KEY YANG BENAR: "current_user" agar dashboard langsung mendeteksi login
+    localStorage.setItem("current_user", JSON.stringify(userData));
 
     return userData;
   } catch (error) {
@@ -87,10 +88,6 @@ export const registerUser = async ({
  * 3. READ: AMBIL ALL PROFILES USER
  * Dipakai oleh Halaman Admin untuk menampilkan daftar user aktif di Grid Card
  */
-/**
- * FUNGSI MENGAMBIL SEMUA USER
- * Membaca seluruh data profiles dari cloud database
- */
 export async function getUsers() {
   try {
     const { data, error } = await supabase
@@ -124,7 +121,7 @@ export async function deleteUser(id) {
 
 /**
  * 5. FUNGSI LOGOUT & BERSIHKAN SESSION (Penyelesaian Kunci Header.jsx)
- * Menghapus token di cloud Supabase dan membersihkan storage client browser
+ * Menghapus token di cloud Supabase dan membersihkan storage client browser secara bersih
  */
 export const clearSession = async () => {
   try {
@@ -140,7 +137,7 @@ export const clearSession = async () => {
 
 /**
  * 6. FUNGSI MENGAMBIL DATA SESI LOKAL AKTIF (Penyelesaian Kunci Header.jsx)
- * Dipakai oleh Header.jsx untuk membaca siapa user yang sedang aktif saat ini
+ * Dipakai oleh Header.jsx dan Router Guard untuk membaca siapa user yang aktif saat ini
  */
 export const getSession = () => {
   try {
