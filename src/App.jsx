@@ -6,9 +6,11 @@ import AuthLayout from "./layouts/AuthLayout";
 import Loading from "./components/Loading";
 import React, { Suspense } from "react";
 
-
 function App() {
-  // Main Pages
+  // ========== PUBLIC PAGE (GUEST) ==========
+  const LandingPage = React.lazy(() => import("./pages/LandingPage"));
+
+  // ========== MAIN PAGES (ADMIN) ==========
   const Dashboard = React.lazy(() => import("./pages/Dashboard"))
   const Pets = React.lazy(() => import("./pages/Pets"))
   const FormPet = React.lazy(() => import("./pages/FormPet"))
@@ -23,15 +25,15 @@ function App() {
   const FeedbackKomplain = React.lazy(() => import("./pages/FeedbackKomplain"))
   const ComponentShowcase = React.lazy(() => import("./pages/ComponentShowcase"));
   const CreateUser = React.lazy(() => import("./pages/auth/CreateUser"));
-  
-  // Detail Pages (Dynamic Route)
 
+  
+  // ========== DETAIL PAGES ==========
   const PetDetail = React.lazy(() => import("./pages/PetDetail"))
   const AppointmentDetail = React.lazy(() => import("./pages/AppointmentDetail"))
   const PetOwnerDetail = React.lazy(() => import("./pages/PetOwnerDetail"))
   const VeterinarianDetail = React.lazy(() => import("./pages/VeterinarianDetail"))
   
-  // Auth & Error Pages
+  // ========== AUTH & ERROR PAGES ==========
   const ErrorPage = React.lazy(() => import("./components/ErrorPage"))
   const Login = React.lazy(() => import("./pages/auth/Login"))
   const Register = React.lazy(() => import("./pages/auth/Register"))
@@ -40,10 +42,29 @@ function App() {
   
   return (
     <Suspense fallback={<Loading />}>
-    <Routes>
-      <Route element={<RequireAuth><MainLayout /></RequireAuth>}>
+      <Routes>
+        {/* ============================================ */}
+        {/* ========== PUBLIC ROUTES (GUEST) ========== */}
+        {/* ============================================ */}
+        
+        {/* Landing Page - Halaman Utama untuk Guest (tanpa login) */}
+        <Route path="/" element={<LandingPage />} />
+        
+        {/* Auth Routes */}
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot" element={<Forgot />} />
+        </Route>
+
+        {/* ============================================ */}
+        {/* ========== PROTECTED ROUTES (ADMIN) ========== */}
+        {/* ============================================ */}
+        <Route element={<RequireAuth><MainLayout /></RequireAuth>}>
+          {/* Dashboard - pindah ke /dashboard */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          
           {/* Main Routes */}
-          <Route path="/" element={<Dashboard />} />
           <Route path="/pets" element={<Pets />} />
           <Route path="/add-pet" element={<FormPet />} />
           <Route path="/appointments" element={<Appointments />} />
@@ -69,15 +90,8 @@ function App() {
           <Route path="/error-401" element={<ErrorPage kodeError="401" deskripsiError="Unauthorized" />} />
           <Route path="/error-403" element={<ErrorPage kodeError="403" deskripsiError="Forbidden" />} />
           <Route path="*" element={<NotFound />} />
-      </Route>
-      
-      {/* Auth Routes */}
-      <Route element={<AuthLayout/>}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register/>} />
-            <Route path="/forgot" element={<Forgot/>} />
         </Route>
-    </Routes>
+      </Routes>
     </Suspense>
   );
 } 

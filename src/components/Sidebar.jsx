@@ -29,9 +29,9 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
         : "text-gray-600 hover:bg-[#CCC3FF]/20 hover:text-[#432C81]"
     } ${isCollapsed ? "justify-center" : ""}`;
   
-  // ISI MENU TETAP SAMA (tidak berubah)
+  // ========== MENU YANG BENAR (TANPA LANDING PAGE) ==========
   const menuItems = [
-    { path: "/", icon: FaHome, label: "Beranda" },
+    { path: "/dashboard", icon: FaHome, label: "Dashboard" },
     { path: "/pets", icon: FaPaw, label: "Pasien" },
     { path: "/appointments", icon: FaCalendarAlt, label: "Janji Temu" },
     { path: "/customer-crm", icon: FaAddressCard, label: "Customer CRM" },
@@ -46,17 +46,15 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
   return (
     <div className={`bg-white shadow-2xl flex flex-col transition-all duration-300 h-full overflow-y-auto border-r border-[#CCC3FF]/30 ${isCollapsed ? "w-20" : "w-80"}`}>
       
-      {/* Logo Section - Style DocSwift, Tapi Isi Tetap */}
+      {/* Logo Section */}
       <div className={`p-6 border-b border-[#CCC3FF]/30 ${isCollapsed ? "text-center" : ""}`}>
         <div className="flex items-center justify-between">
           <div className={`flex items-center gap-3 ${isCollapsed ? "justify-center w-full" : ""}`}>
-            {/* Icon tetap ❤️ (Paws & Care) */}
             <div className="bg-gradient-primary w-10 h-10 rounded-xl flex items-center justify-center shadow-md">
               <FaHeartbeat className="text-white text-xl" />
             </div>
             {!isCollapsed && (
               <div>
-                {/* Nama tetap Paws & Care */}
                 <span className="font-nunito text-xl font-bold bg-gradient-to-r from-[#432C81] to-[#58315A] bg-clip-text text-transparent">
                   Paws<span className="text-[#58315A]">&</span>Care
                 </span>
@@ -77,7 +75,7 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
         )}
       </div>
 
-      {/* Profile Ringkasan - Style DocSwift */}
+      {/* Profile Ringkasan */}
       {!isCollapsed && (
         <div className="mx-4 mt-4 p-3 bg-gradient-to-r from-[#CCC3FF]/30 to-[#432C81]/5 rounded-xl flex items-center gap-3">
           <div className="relative">
@@ -102,7 +100,7 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
         </div>
       )}
 
-      {/* Menu Utama - Style DocSwift, Isi Tetap */}
+      {/* Menu Utama */}
       <div className="flex-1 py-6">
         <div className="px-4 mb-4">
           {!isCollapsed && (
@@ -123,7 +121,7 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
         </ul>
       </div>
 
-      {/* Footer - Style DocSwift */}
+      {/* Footer */}
       <div className="p-4 border-t border-[#CCC3FF]/30">
         {!isCollapsed ? (
           <>

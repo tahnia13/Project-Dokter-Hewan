@@ -7,7 +7,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user"); // State untuk menampung pilihan role
+  const [role, setRole] = useState("user");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -15,19 +15,21 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     
-    // Kirim email dan password ke fungsi login Supabase
     const user = await loginUser(email.trim(), password);
     setLoading(false);
 
     if (user) {
-      // Validasi tambahan: Memastikan role yang dipilih di form sesuai dengan role asli di database cloud
       if (user.role !== role) {
         alert(`Gagal Masuk: Hak akses Anda terdaftar sebagai ${user.role.toUpperCase()}, bukan ${role.toUpperCase()}!`);
         return;
       }
 
       alert(`Selamat datang kembali, ${user.name} (${user.role.toUpperCase()})!`);
-      navigate("/"); 
+      
+      // ========== PERUBAHAN DI SINI ==========
+      // Redirect ke /dashboard (bukan "/")
+      navigate("/dashboard");
+      // =====================================
     }
   };
 
@@ -84,7 +86,7 @@ export default function Login() {
             </div>
           </div>
 
-          {/* INPUT BARU: Pilihan Hak Akses (Role) */}
+          {/* Pilihan Hak Akses (Role) */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Masuk Sebagai (Role)</label>
             <div className="relative">

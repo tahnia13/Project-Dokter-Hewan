@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { 
   FaPaw, FaCalendarCheck, FaUsers, FaHeartbeat, FaDog, FaCat, 
   FaUserMd, FaCheckCircle, FaSpinner, FaHourglassHalf, FaClock,
-  FaSyringe, FaStethoscope, FaArrowUp, FaArrowDown, FaInfoCircle
+  FaSyringe, FaStethoscope, FaArrowUp, FaArrowDown, FaInfoCircle,
+  FaChartPie, FaChartBar, FaChartLine
 } from "react-icons/fa";
 import Badge from "./Components/Badge";
 import Loading from "./Components/Loading";
@@ -21,12 +22,9 @@ export default function Dashboard() {
   const [appointments, setAppointments] = useState([]);
   const [owners, setOwners] = useState([]);
   const [veterinarians, setVeterinarians] = useState([]);
-
-  // =========================================================================
-  // KUNCI PERBAIKAN: State untuk fitur hover interaktif rekap angka pada Chart
-  // =========================================================================
   const [activeTooltipIdx, setActiveTooltipIdx] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [hoveredSegment, setHoveredSegment] = useState(null);
 
   useEffect(() => {
     setTimeout(() => {
@@ -38,13 +36,10 @@ export default function Dashboard() {
     }, 500);
   }, []);
 
-// ========== DATA STATISTIK (PERBAIKAN LOGIKA TAHUN) ==========
+  // ========== DATA ==========
   const totalPets = pets.length;
-  
-  // Menggunakan tanggal hari ini berdasarkan waktu sistem browser
   const todayObj = new Date();
   const today = todayObj.toISOString().slice(0, 10);
-  
   const todayAppointments = appointments.filter(a => a.date === today).length;
   const completedAppointments = appointments.filter(a => a.status === "Completed").length;
   const inProgressAppointments = appointments.filter(a => a.status === "In Progress").length;
@@ -57,14 +52,16 @@ export default function Dashboard() {
   const othersCount = pets.filter(p => !["Dog", "Cat", "Rabbit", "Bird"].includes(p.type)).length;
   
   const petTypes = [
-    { name: "Kucing", count: catsCount, icon: FaCat, color: "bg-orange-50 text-orange-500 border border-orange-100" },
-    { name: "Anjing", count: dogsCount, icon: FaDog, color: "bg-blue-50 text-blue-500 border border-blue-100" },
-    { name: "Kelinci", count: rabbitsCount, icon: FaPaw, color: "bg-pink-50 text-pink-500 border border-pink-100" },
-    { name: "Burung", count: birdsCount, icon: FaHeartbeat, color: "bg-emerald-50 text-emerald-500 border border-emerald-100" },
-    { name: "Lainnya", count: othersCount, icon: FaPaw, color: "bg-purple-50 text-purple-500 border border-purple-100" },
+    { name: "Kucing", count: catsCount, icon: FaCat, color: "#F59E0B" },
+    { name: "Anjing", count: dogsCount, icon: FaDog, color: "#3B82F6" },
+    { name: "Kelinci", count: rabbitsCount, icon: FaPaw, color: "#EC4899" },
+    { name: "Burung", count: birdsCount, icon: FaHeartbeat, color: "#10B981" },
+    { name: "Lainnya", count: othersCount, icon: FaPaw, color: "#8B5CF6" },
   ].filter(p => p.count > 0);
 
-  // KUNCI PERBAIKAN 1: Memastikan ekstraksi bulan aman tanpa terikat validasi tahun yang kaku
+  const totalCount = petTypes.reduce((sum, d) => sum + d.count, 0);
+
+  // Monthly data
   const getMonthlyVisits = () => {
     const monthly = Array(12).fill(0);
     appointments.forEach(apt => {
@@ -92,74 +89,25 @@ export default function Dashboard() {
       }
     }
   });
-  const maxSpeciesVisit = Math.max(...monthlyDogVisits, ...monthlyCatVisits, 1);
 
-  // KUNCI PERBAIKAN 2: Mengambil indeks bulan aktif saat ini secara dinamis
   const currentMonthIndex = todayObj.getMonth();
   const currentMonthVisits = monthlyVisits[currentMonthIndex];
+  const dynamicMonthIdx = currentMonthVisits > 0 ? currentMonthIndex : monthlyVisits.indexOf(Math.max(...monthlyVisits));
   
-  // Jika bulan ini masih 0 (karena data dummy Anda menumpuk di bulan Mei), 
-  // kita ganti display fallback-nya ke bulan terakhir yang memiliki transaksi data terbesar agar dashboard tidak terlihat kosong.
-  const dynamicMonthIdx = currentMonthVisits > 0 ? currentMonthIndex : monthlyVisits.indexOf(maxVisit);
-  
-  const displayMonthVisits = monthlyVisits[dynamicMonthIdx];
   const previousMonthVisits = dynamicMonthIdx > 0 ? monthlyVisits[dynamicMonthIdx - 1] : 0;
-  
   const trafficTrendPercent = previousMonthVisits > 0
-    ? Math.round(((displayMonthVisits - previousMonthVisits) / previousMonthVisits) * 100)
-    : displayMonthVisits > 0 ? 100 : 0;
-    
-  const trafficTrendLabel = `${trafficTrendPercent >= 0 ? "+" : ""}${trafficTrendPercent}%`;
-  const currentMonthName = months[dynamicMonthIdx];
+    ? Math.round(((monthlyVisits[dynamicMonthIdx] - previousMonthVisits) / previousMonthVisits) * 100)
+    : monthlyVisits[dynamicMonthIdx] > 0 ? 100 : 0;
 
-  const totalDogVisits = monthlyDogVisits.reduce((sum, value) => sum + value, 0);
-  const totalCatVisits = monthlyCatVisits.reduce((sum, value) => sum + value, 0);
-
-  const chartPoints = (values) => {
-    const width = 600;
-    const height = 220;
-    const padding = 40;
-    return values.map((value, index) => {
-      const x = padding + (index * (width - padding * 2)) / (values.length - 1);
-      const y = height - padding - (value / maxSpeciesVisit) * (height - padding * 2);
-      return { x, y, value };
-    });
-  };
-
-  const dogPoints = chartPoints(monthlyDogVisits);
-  const catPoints = chartPoints(monthlyCatVisits);
-
-  const svgLinePath = (points) => points.map((pt, index) => `${index === 0 ? "M" : "L"}${pt.x},${pt.y}`).join(" ");
-  const svgAreaPath = (points) => `M${points[0].x},${220 - 40} ${points.map((pt) => `L${pt.x},${pt.y}`).join(" ")} L${points[points.length - 1].x},${220 - 40} Z`;
-
-  const todayScheduleList = appointments
-    .filter(a => a.date === today)
-    .slice(0, 5)
-    .map(apt => {
-      const pet = pets.find(p => p.id === apt.petId);
-      const owner = owners.find(o => o.id === pet?.ownerId);
-      return {
-        id: apt.id,
-        petName: pet?.name || "Tidak Diketahui",
-        symptoms: apt.symptoms,
-        time: apt.time,
-        status: apt.status,
-        ownerName: owner?.name || "Tidak Diketahui"
-      };
-    });
-
-  const features = [
-    { icon: "🐶", title: "Perawatan Anjing", description: "Layanan kesehatan lengkap untuk anjing kesayangan Anda" },
-    { icon: "🐱", title: "Perawatan Kucing", description: "Perawatan khusus untuk kucing dengan dokter spesialis" },
-    { icon: "🐰", title: "Perawatan Kelinci", description: "Penanganan profesional untuk kelinci peliharaan" },
-    { icon: "🦜", title: "Perawatan Burung", description: "Konsultasi kesehatan untuk burung eksotis" },
-  ];
+  const totalAppointments = appointments.length;
+  const completionRate = totalAppointments > 0 ? Math.round((completedAppointments / totalAppointments) * 100) : 0;
+  const cancelledAppointments = appointments.filter(a => a.status === "Cancelled").length;
+  const busiestMonthIndex = monthlyVisits.indexOf(Math.max(...monthlyVisits));
+  const busiestMonthLabel = `${months[busiestMonthIndex]} (${Math.max(...monthlyVisits)} Kunjungan)`;
 
   const activeVet = veterinarians.find(v => v.status === "Active");
   const doctorName = activeVet?.name || "Dr. Sarah Wijaya";
   const shortDoctorName = doctorName.replace("Dr. ", "");
-
-  const yesterdayAppointments = appointments.filter(a => a.date === getYesterdayDate()).length;
 
   function getYesterdayDate() {
     const yesterday = new Date();
@@ -181,28 +129,28 @@ export default function Dashboard() {
   };
 
   const recentHeaders = ["Hewan", "Pemilik", "Dokter", "Tanggal", "Status"];
+  const features = [
+    { icon: "🐶", title: "Perawatan Anjing", description: "Layanan kesehatan lengkap untuk anjing kesayangan Anda" },
+    { icon: "🐱", title: "Perawatan Kucing", description: "Perawatan khusus untuk kucing dengan dokter spesialis" },
+    { icon: "🐰", title: "Perawatan Kelinci", description: "Penanganan profesional untuk kelinci peliharaan" },
+    { icon: "🦜", title: "Perawatan Burung", description: "Konsultasi kesehatan untuk burung eksotis" },
+  ];
 
-  const totalAppointments = appointments.length;
-  const completionRate = totalAppointments > 0 ? Math.round((completedAppointments / totalAppointments) * 100) : 0;
-  const currentMonthAppointments = appointments.filter(apt => new Date(apt.date).getMonth() === currentMonthIndex).length;
-  const currentMonthDays = new Set(appointments.filter(apt => new Date(apt.date).getMonth() === currentMonthIndex).map(apt => apt.date)).size || 1;
-  const averageDailyAppointments = Math.round(currentMonthAppointments / currentMonthDays);
-  const cancelledAppointments = appointments.filter(a => a.status === "Cancelled").length;
-  const busiestMonthIndex = monthlyVisits.indexOf(maxVisit);
-  const busiestMonthLabel = `${months[busiestMonthIndex]} (${maxVisit} Kunjungan)`;
-  const totalYearlyVisits = monthlyVisits.reduce((sum, value) => sum + value, 0);
-  const dogShare = totalYearlyVisits ? Math.round((totalDogVisits / totalYearlyVisits) * 100) : 0;
-  const catShare = totalYearlyVisits ? Math.round((totalCatVisits / totalYearlyVisits) * 100) : 0;
-  
-  const symptomCounts = appointments.reduce((acc, apt) => {
-    const key = apt.symptoms || "Checkup";
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
-  const topSymptoms = Object.entries(symptomCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([symptom, count]) => ({ symptom, count }));
+  const todayScheduleList = appointments
+    .filter(a => a.date === today)
+    .slice(0, 5)
+    .map(apt => {
+      const pet = pets.find(p => p.id === apt.petId);
+      const owner = owners.find(o => o.id === pet?.ownerId);
+      return {
+        id: apt.id,
+        petName: pet?.name || "Tidak Diketahui",
+        symptoms: apt.symptoms,
+        time: apt.time,
+        status: apt.status,
+        ownerName: owner?.name || "Tidak Diketahui"
+      };
+    });
 
   const recentData = appointments
     .slice()
@@ -220,12 +168,20 @@ export default function Dashboard() {
       };
     });
 
+  // Donut Chart Segments
+  const donutSegments = petTypes.map((d, idx) => {
+    const percentage = (d.count / totalCount) * 100;
+    const startAngle = petTypes.slice(0, idx).reduce((sum, item) => sum + (item.count / totalCount) * 100, 0) * 3.6;
+    return { ...d, percentage, startAngle };
+  });
+
   if (isLoading) return <Loading fullScreen text="Memuat data dashboard..." />;
 
   return (
     <div className="p-6 bg-slate-50/50 min-h-screen font-inter antialiased text-slate-800">
-      {/* Hero Section */}
-      <div className="mb-8 transform hover:scale-[1.005] transition-all duration-300">
+
+      {/* ========== NAVBAR / HERO ========== */}
+      <div className="mb-8">
         <HeroSection 
           title={`Selamat Datang, ${shortDoctorName}!`}
           subtitle="Kelola data pasien, jadwal konsultasi, dan layanan kesehatan hewan dengan mudah"
@@ -235,7 +191,7 @@ export default function Dashboard() {
       </div>
 
       <Container>
-        {/* Header Profile */}
+        {/* ========== PROFILE HEADER ========== */}
         <div className="flex justify-between items-center mb-8 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/60 flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <div className="bg-gradient-to-tr from-[#432C81] to-[#6D47B8] w-14 h-14 rounded-2xl flex items-center justify-center shadow-md shadow-purple-200">
@@ -259,15 +215,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Info Klinik Trigger Button & Modal */}
+        {/* ========== INFO MODAL ========== */}
         <div className="flex justify-center mb-8">
           <button 
             className="flex items-center gap-2 rounded-xl font-bold text-xs uppercase tracking-wider bg-[#432C81] hover:bg-[#342264] text-white border-none py-3 px-6 transition-all duration-300 shadow-sm"
             onClick={() => document.getElementById('info_modal').showModal()}
           >
-            <FaInfoCircle /> Informasi Paws & Care Clinic
+            <FaInfoCircle /> Informasi Klinik
           </button>
-          
           <dialog id="info_modal" className="modal backdrop-blur-xs">
             <div className="modal-box bg-white text-slate-800 rounded-2xl border border-slate-200 shadow-2xl p-6">
               <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-4">
@@ -293,8 +248,8 @@ export default function Dashboard() {
                   <span className="text-slate-400 font-medium">🩺 Dokter Utama</span>
                   <span className="font-bold text-slate-800">{doctorName}</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-50 pb-2">
-                  <span className="text-slate-400 font-medium">📧 Email Resmi</span>
+                <div className="flex justify-between">
+                  <span className="text-slate-400 font-medium">📧 Email</span>
                   <span className="font-bold text-[#432C81]">info@pawscare.com</span>
                 </div>
               </div>
@@ -307,21 +262,23 @@ export default function Dashboard() {
           </dialog>
         </div>
 
-        {/* 4 Top Highlight Cards */}
+        {/* ========== 4 KPI CARDS ========== */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-          <div className="rounded-2xl bg-gradient-to-br from-[#432C81] to-[#6D47B8] text-white p-6 shadow-md transform hover:-translate-y-0.5 transition-all duration-300">
+          <div className="rounded-2xl bg-gradient-to-br from-[#432C81] to-[#6D47B8] text-white p-6 shadow-md hover:-translate-y-0.5 transition-all duration-300">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60 mb-2">Kunjungan Bulan Ini</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-black tracking-tight">{currentMonthAppointments}</span>
+              <span className="text-4xl font-black tracking-tight">{monthlyVisits[currentMonthIndex]}</span>
               <span className="text-xs text-white/80 font-medium">Kunjungan</span>
             </div>
             <div className="mt-4 pt-4 border-t border-white/10 text-xs text-white/70 flex items-center justify-between">
               <span>Rata-rata Harian:</span>
-              <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded-md">{averageDailyAppointments} / Hari</span>
+              <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded-md">
+                {Math.round(monthlyVisits[currentMonthIndex] / 30)} / Hari
+              </span>
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white p-6 shadow-xs border border-slate-200/80 transform hover:-translate-y-0.5 transition-all duration-300">
+          <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-200/80 hover:-translate-y-0.5 transition-all duration-300">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2">Tingkat Penyelesaian</p>
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-black text-[#432C81] tracking-tight">{completionRate}%</span>
@@ -332,17 +289,17 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white p-6 shadow-xs border border-slate-200/80 transform hover:-translate-y-0.5 transition-all duration-300">
+          <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-200/80 hover:-translate-y-0.5 transition-all duration-300">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2">Total Pembatalan</p>
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-black text-rose-600 tracking-tight">{cancelledAppointments}</span>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-rose-600 font-bold flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping" /> Perlu evaluasi antrean
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping" /> Perlu evaluasi
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white p-6 shadow-xs border border-slate-200/80 transform hover:-translate-y-0.5 transition-all duration-300">
+          <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-200/80 hover:-translate-y-0.5 transition-all duration-300">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2">Puncak Traffic</p>
             <div className="text-sm font-bold text-slate-800 leading-snug mt-2 truncate">{busiestMonthLabel}</div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 font-medium">
@@ -351,252 +308,339 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Laporan Traffic Bulanan - Chart Section */}
+        {/* ========== CHART SECTION ========== */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          
+          {/* DONUT CHART */}
+          <div className="lg:col-span-1">
+            <Card title="Komposisi Pasien">
+              <div className="flex flex-col items-center">
+                <div className="relative w-64 h-64">
+                  <svg viewBox="0 0 200 200" className="w-full h-full">
+                    {donutSegments.map((d, idx) => {
+                      const startRad = (d.startAngle - 90) * Math.PI / 180;
+                      const endRad = (d.startAngle + d.percentage * 3.6 - 90) * Math.PI / 180;
+                      const x1 = 100 + 70 * Math.cos(startRad);
+                      const y1 = 100 + 70 * Math.sin(startRad);
+                      const x2 = 100 + 70 * Math.cos(endRad);
+                      const y2 = 100 + 70 * Math.sin(endRad);
+                      const largeArc = d.percentage > 50 ? 1 : 0;
+                      
+                      const pathData = `M 100 100 L ${x1} ${y1} A 70 70 0 ${largeArc} 1 ${x2} ${y2} Z`;
+                      
+                      return (
+                        <g key={idx}>
+                          <path
+                            d={pathData}
+                            fill={d.color}
+                            stroke="white"
+                            strokeWidth="2"
+                            className="transition-all duration-300 cursor-pointer hover:opacity-80"
+                            onMouseEnter={() => setHoveredSegment(idx)}
+                            onMouseLeave={() => setHoveredSegment(null)}
+                            style={{
+                              transform: hoveredSegment === idx ? "scale(1.03)" : "scale(1)",
+                              transformOrigin: "100px 100px",
+                              transition: "transform 0.3s ease"
+                            }}
+                          />
+                          {d.percentage > 10 && (
+                            <text
+                              x={100 + 50 * Math.cos((startRad + endRad) / 2)}
+                              y={100 + 50 * Math.sin((startRad + endRad) / 2)}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              className="text-xs font-bold text-white drop-shadow-lg"
+                            >
+                              {Math.round(d.percentage)}%
+                            </text>
+                          )}
+                        </g>
+                      );
+                    })}
+                    <circle cx="100" cy="100" r="45" fill="white" />
+                    <text x="100" y="95" textAnchor="middle" className="text-xl font-black text-slate-800">Total</text>
+                    <text x="100" y="115" textAnchor="middle" className="text-lg font-bold text-[#432C81]">{totalCount}</text>
+                  </svg>
+                </div>
+
+                <div className="flex flex-wrap justify-center gap-3 mt-4">
+                  {petTypes.map((d, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 cursor-pointer ${
+                        hoveredSegment === idx ? "bg-slate-100 scale-105" : "bg-white"
+                      }`}
+                      onMouseEnter={() => setHoveredSegment(idx)}
+                      onMouseLeave={() => setHoveredSegment(null)}
+                    >
+                      <span className="w-3 h-3 rounded-full" style={{ background: d.color }} />
+                      <span>{d.name}</span>
+                      <span className="text-slate-400 font-mono">{d.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* STACKED BAR CHART */}
+          <div className="lg:col-span-2">
+            <Card title="Tren Kunjungan">
+              <div className="flex items-center gap-4 mb-4 pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-blue-500" />
+                  <span className="text-xs font-medium text-slate-600">Anjing</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-medium text-slate-600">Kucing</span>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <div className="flex items-end h-60 gap-2 min-w-[500px]">
+                  {months.map((month, idx) => {
+                    const total = monthlyDogVisits[idx] + monthlyCatVisits[idx];
+                    const height = total > 0 ? (total / Math.max(...monthlyVisits)) * 200 : 4;
+                    const dogH = monthlyDogVisits[idx] > 0 ? (monthlyDogVisits[idx] / Math.max(...monthlyVisits)) * 200 : 0;
+                    const catH = monthlyCatVisits[idx] > 0 ? (monthlyCatVisits[idx] / Math.max(...monthlyVisits)) * 200 : 0;
+                    const totalH = dogH + catH;
+                    
+                    return (
+                      <div key={idx} className="flex-1 flex flex-col items-center group">
+                        <div className="relative w-full flex flex-col items-center">
+                          <div className="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-[10px] px-2.5 py-1.5 rounded-lg whitespace-nowrap z-10 pointer-events-none">
+                            <div className="font-bold">{month}</div>
+                            <div className="flex gap-2">
+                              <span>🐕 {monthlyDogVisits[idx]}</span>
+                              <span>🐈 {monthlyCatVisits[idx]}</span>
+                              <span className="text-amber-300">Total: {total}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="w-full relative" style={{ height: `${height}px` }}>
+                            {catH > 0 && (
+                              <div 
+                                className="absolute bottom-0 w-full rounded-t-sm transition-all duration-500 hover:opacity-80"
+                                style={{ 
+                                  height: `${(catH / totalH) * 100}%`,
+                                  background: "#10B981",
+                                  bottom: 0
+                                }}
+                              />
+                            )}
+                            {dogH > 0 && (
+                              <div 
+                                className="absolute bottom-0 w-full rounded-t-sm transition-all duration-500 hover:opacity-80"
+                                style={{ 
+                                  height: `${(dogH / totalH) * 100}%`,
+                                  background: "#3B82F6",
+                                  bottom: `${(catH / totalH) * 100}%`
+                                }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-medium mt-2">{month}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* ========== LINE CHART ========== */}
         <div className="mb-8">
-          <Card title="Analisis Tren & Keluhan Pasien">
+          <Card>
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 pb-6 border-b border-slate-100">
               <div>
-                <p className="text-xs text-slate-400 font-medium">Arahkan kursor pada area grafik bulan untuk melihat detail angka pasien.</p>
-                <p className="text-base font-bold text-slate-800 mt-1">{currentMonthName} Tahun Ini — {currentMonthVisits} Total Kunjungan</p>
+                <div className="flex items-center gap-3">
+                  <FaChartLine className="text-[#432C81] text-lg" />
+                  <p className="text-sm font-bold text-slate-800">{months[dynamicMonthIdx]} — {monthlyVisits[dynamicMonthIdx]} Total Kunjungan</p>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">Arahkan kursor pada titik grafik untuk melihat detail</p>
               </div>
               <div className={`self-start lg:self-center inline-flex items-center rounded-xl px-3.5 py-1.5 text-xs font-bold ${trafficTrendPercent >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                 {trafficTrendPercent >= 0 ? <FaArrowUp className="mr-1.5" /> : <FaArrowDown className="mr-1.5" />}
-                {trafficTrendLabel} dibanding bulan lalu
+                {trafficTrendPercent >= 0 ? "+" : ""}{trafficTrendPercent}%
               </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              
-              {/* ========================================================================= */}
-              {/* PERBAIKAN GRAFIK: Sekarang Interaktif dengan Box Tooltip & Garis Vertikal */}
-              {/* ========================================================================= */}
-              <div className="xl:col-span-2 bg-slate-50/70 border border-slate-200/60 rounded-2xl p-4 flex flex-col items-center justify-center relative">
-                
-                {/* HTML Float Box Tooltip Rekap Angka */}
-                {activeTooltipIdx !== null && (
-                  <div 
-                    className="absolute z-20 bg-slate-900 text-white p-3 rounded-xl text-xs font-semibold shadow-xl pointer-events-none transition-all duration-150 border border-slate-700 min-w-[140px]"
-                    style={{ 
-                      left: `${Math.min(Math.max(tooltipPos.x - 70, 20), 450)}px`, 
-                      top: `${Math.max(tooltipPos.y - 95, 10)}px` 
-                    }}
-                  >
-                    <div className="text-slate-400 border-b border-slate-700 pb-1 mb-1.5 font-bold tracking-wide uppercase text-[10px]">
-                      Rekap {months[activeTooltipIdx]}
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center gap-4">
-                        <span className="flex items-center gap-1.5 text-slate-300">
-                          <span className="w-2 h-2 rounded-full bg-blue-500" /> Anjing:
-                        </span>
-                        <span className="font-mono font-bold text-blue-400">{monthlyDogVisits[activeTooltipIdx]} Pasien</span>
-                      </div>
-                      <div className="flex justify-between items-center gap-4">
-                        <span className="flex items-center gap-1.5 text-slate-300">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500" /> Kucing:
-                        </span>
-                        <span className="font-mono font-bold text-emerald-400">{monthlyCatVisits[activeTooltipIdx]} Pasien</span>
-                      </div>
-                      <div className="flex justify-between items-center gap-4 border-t border-slate-800 pt-1 mt-1 text-[11px] font-bold">
-                        <span className="text-slate-400">Total:</span>
-                        <span className="font-mono text-amber-400">{monthlyDogVisits[activeTooltipIdx] + monthlyCatVisits[activeTooltipIdx]} Sesi</span>
-                      </div>
-                    </div>
+            <div className="bg-slate-50/70 border border-slate-200/60 rounded-2xl p-4 relative">
+              {/* Tooltip Float */}
+              {activeTooltipIdx !== null && (
+                <div 
+                  className="absolute z-20 bg-slate-900 text-white p-3 rounded-xl text-xs font-semibold shadow-xl pointer-events-none transition-all duration-150 border border-slate-700 min-w-[120px]"
+                  style={{ 
+                    left: `${Math.min(Math.max((40 + activeTooltipIdx * 520/11) - 60, 20), 450)}px`, 
+                    top: `${Math.max((220 - 40 - (monthlyVisits[activeTooltipIdx] / maxVisit) * 140) - 80, 10)}px` 
+                  }}
+                >
+                  <div className="text-slate-400 border-b border-slate-700 pb-1 mb-1 font-bold tracking-wide uppercase text-[10px]">
+                    {months[activeTooltipIdx]}
                   </div>
-                )}
-
-                <div className="w-full relative overflow-x-auto">
-                  <svg viewBox="0 0 620 220" className="w-full min-w-[500px] h-56 overflow-visible">
-                    <defs>
-                      <linearGradient id="lineGradientDog" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#2563EB" stopOpacity="0.2" />
-                        <stop offset="100%" stopColor="#2563EB" stopOpacity="0" />
-                      </linearGradient>
-                      <linearGradient id="lineGradientCat" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10B981" stopOpacity="0.2" />
-                        <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
-                      </linearGradient>
-                    </defs>
-                    
-                    {/* Grid Background */}
-                    <g opacity="0.12">
-                      {[0, 1, 2, 3, 4, 5].map((line) => (
-                        <line key={line} x1="40" y1={40 + line * 28} x2="580" y2={40 + line * 28} stroke="#64748B" strokeDasharray="3 3" />
-                      ))}
-                    </g>
-
-                    {/* Garis Bantu Indikator Vertikal saat Hover */}
-                    {activeTooltipIdx !== null && dogPoints[activeTooltipIdx] && (
-                      <line 
-                        x1={dogPoints[activeTooltipIdx].x} 
-                        y1="40" 
-                        x2={dogPoints[activeTooltipIdx].x} 
-                        y2="180" 
-                        stroke="#94A3B8" 
-                        strokeWidth="1.5" 
-                        strokeDasharray="4 4"
-                        className="transition-all duration-150"
-                      />
-                    )}
-
-                    {/* Path Area & Line */}
-                    <path d={svgAreaPath(catPoints)} fill="url(#lineGradientCat)" />
-                    <path d={svgAreaPath(dogPoints)} fill="url(#lineGradientDog)" />
-                    <path d={svgLinePath(catPoints)} fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d={svgLinePath(dogPoints)} fill="none" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    
-                    {/* Lingkaran Titik Data Kucing */}
-                    {catPoints.map((point, idx) => (
-                      <circle 
-                        key={`cat-${idx}`} 
-                        cx={point.x} 
-                        cy={point.y} 
-                        r={activeTooltipIdx === idx ? "6" : "4"} 
-                        fill={activeTooltipIdx === idx ? "#10B981" : "#FFFFFF"} 
-                        stroke="#10B981" 
-                        strokeWidth={activeTooltipIdx === idx ? "3" : "2.5"} 
-                        className="transition-all duration-150 pointer-events-none"
-                      />
-                    ))}
-                    
-                    {/* Lingkaran Titik Data Anjing */}
-                    {dogPoints.map((point, idx) => (
-                      <circle 
-                        key={`dog-${idx}`} 
-                        cx={point.x} 
-                        cy={point.y} 
-                        r={activeTooltipIdx === idx ? "6" : "4"} 
-                        fill={activeTooltipIdx === idx ? "#2563EB" : "#FFFFFF"} 
-                        stroke="#2563EB" 
-                        strokeWidth={activeTooltipIdx === idx ? "3" : "2.5"} 
-                        className="transition-all duration-150 pointer-events-none"
-                      />
-                    ))}
-                    
-                    {/* Label Bulan Sumbu X */}
-                    {months.map((month, idx) => (
-                      <text 
-                        key={month} 
-                        x={40 + (idx * 520) / 11} 
-                        y="212" 
-                        textAnchor="middle" 
-                        fontSize="10" 
-                        fontWeight={activeTooltipIdx === idx ? "800" : "600"} 
-                        fill={activeTooltipIdx === idx ? "#432C81" : "#94A3B8"}
-                        className="transition-colors duration-150"
-                      >
-                        {month}
-                      </text>
-                    ))}
-
-                    {/* Area Tangkapan Deteksi Kursor Mouse (Invisible Hover Capturers) */}
-                    {months.map((_, idx) => {
-                      const barWidth = 520 / 11;
-                      const xPos = 40 + (idx * barWidth) - (barWidth / 2);
-                      return (
-                        <rect
-                          key={`capture-${idx}`}
-                          x={idx === 0 ? 40 : xPos}
-                          y="30"
-                          width={idx === 0 || idx === 11 ? barWidth / 2 : barWidth}
-                          height="160"
-                          fill="transparent"
-                          className="cursor-pointer"
-                          onMouseEnter={(e) => {
-                            setActiveTooltipIdx(idx);
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const containerRect = e.currentTarget.closest('.relative').getBoundingClientRect();
-                            setTooltipPos({
-                              x: rect.left - containerRect.left + (rect.width / 2),
-                              y: dogPoints[idx] ? dogPoints[idx].y : 100
-                            });
-                          }}
-                          onMouseMove={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const containerRect = e.currentTarget.closest('.relative').getBoundingClientRect();
-                            setTooltipPos(prev => ({
-                              ...prev,
-                              x: rect.left - containerRect.left + (rect.width / 2)
-                            }));
-                          }}
-                          onMouseLeave={() => setActiveTooltipIdx(null)}
-                        />
-                      );
-                    })}
-                  </svg>
-                </div>
-              </div>
-              {/* ========================================================================= */}
-
-              {/* Progress & Top Symptoms */}
-              <div className="flex flex-col justify-between gap-4">
-                <div className="space-y-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-200/60">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                      <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#2563EB]" /> Rasio Anjing</span>
-                      <span>{dogShare}%</span>
-                    </div>
-                    <ProgressBar label="Persentase Anjing" percentage={dogShare} color="info" showPercentage={false} />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                      <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#10B981]" /> Rasio Kucing</span>
-                      <span>{catShare}%</span>
-                    </div>
-                    <ProgressBar label="Persentase Kucing" percentage={catShare} color="success" showPercentage={false} />
+                  <div className="flex justify-between items-center gap-4">
+                    <span className="text-slate-300">Kunjungan:</span>
+                    <span className="font-mono font-bold text-amber-400">{monthlyVisits[activeTooltipIdx]} Sesi</span>
                   </div>
                 </div>
+              )}
 
-                <div className="bg-purple-50/40 rounded-2xl p-4 border border-purple-100 flex-1">
-                  <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#432C81] mb-3">3 Keluhan Tertinggi</p>
-                  <div className="space-y-2.5">
-                    {topSymptoms.map((item, idx) => (
-                      <div key={idx} className="flex justify-between items-center rounded-xl bg-white p-2.5 border border-purple-100 shadow-3xs hover:scale-[1.02] transition-transform">
-                        <div>
-                          <p className="text-xs font-bold text-slate-700">{item.symptom}</p>
-                          <p className="text-[10px] text-slate-400 font-medium">Kasus Terbanyak ke-{idx+1}</p>
-                        </div>
-                        <span className="text-xs font-black text-[#432C81] bg-purple-50 px-2.5 py-1 rounded-lg">{item.count} Sesi</span>
-                      </div>
+              <div className="w-full overflow-x-auto">
+                <svg viewBox="0 0 620 220" className="w-full min-w-[500px] h-56 overflow-visible">
+                  <defs>
+                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#7C3AED" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  
+                  {/* Grid */}
+                  <g opacity="0.12">
+                    {[0, 1, 2, 3, 4, 5].map((line) => (
+                      <line key={line} x1="40" y1={40 + line * 28} x2="580" y2={40 + line * 28} stroke="#64748B" strokeDasharray="3 3" />
                     ))}
-                  </div>
-                </div>
+                  </g>
+
+                  {/* Area */}
+                  <path 
+                    d={`M${40 + 0 * 520/11},${220 - 40} ${monthlyVisits.map((v, i) => `L${40 + i * 520/11},${220 - 40 - (v / maxVisit) * 140}`).join(" ")} L${580},${220 - 40} Z`} 
+                    fill="url(#areaGradient)" 
+                  />
+
+                  {/* Line */}
+                  <path 
+                    d={monthlyVisits.map((v, i) => `${i === 0 ? "M" : "L"}${40 + i * 520/11},${220 - 40 - (v / maxVisit) * 140}`).join(" ")} 
+                    fill="none" 
+                    stroke="#7C3AED" 
+                    strokeWidth="3" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                  />
+
+                  {/* Points */}
+                  {monthlyVisits.map((v, i) => (
+                    <circle 
+                      key={i} 
+                      cx={40 + i * 520/11} 
+                      cy={220 - 40 - (v / maxVisit) * 140} 
+                      r={activeTooltipIdx === i ? "7" : "4"} 
+                      fill={activeTooltipIdx === i ? "#7C3AED" : "white"} 
+                      stroke="#7C3AED" 
+                      strokeWidth={activeTooltipIdx === i ? "3" : "2"} 
+                      className="transition-all duration-200 pointer-events-none"
+                    />
+                  ))}
+
+                  {/* Labels */}
+                  {months.map((month, i) => (
+                    <text 
+                      key={i} 
+                      x={40 + i * 520/11} 
+                      y="215" 
+                      textAnchor="middle" 
+                      fontSize="10" 
+                      fontWeight={activeTooltipIdx === i ? "800" : "500"} 
+                      fill={activeTooltipIdx === i ? "#7C3AED" : "#94A3B8"}
+                      className="transition-colors duration-150"
+                    >
+                      {month}
+                    </text>
+                  ))}
+
+                  {/* Hover Capture */}
+                  {months.map((_, i) => {
+                    const barWidth = 520 / 11;
+                    return (
+                      <rect
+                        key={i}
+                        x={i === 0 ? 40 : 40 + i * barWidth - barWidth/2}
+                        y="30"
+                        width={i === 0 || i === 11 ? barWidth/2 : barWidth}
+                        height="170"
+                        fill="transparent"
+                        className="cursor-pointer"
+                        onMouseEnter={() => setActiveTooltipIdx(i)}
+                        onMouseLeave={() => setActiveTooltipIdx(null)}
+                      />
+                    );
+                  })}
+                </svg>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Feature Section */}
-        <div className="mb-8">
-          <FeatureSection features={features} title="Layanan Unggulan Kami" />
-        </div>
-
-        {/* Segmentasi Populasi Pasien */}
-        <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-6 mb-8">
-          <div className="border-b border-slate-100 pb-4 mb-5">
-            <h3 className="text-sm font-bold text-slate-900 tracking-wider uppercase">Segmentasi Populasi Pasien</h3>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">Jumlah persebaran total jenis ras hewan peliharaan aktif terdaftar</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {petTypes.map((type, idx) => (
-              <div key={idx} className="flex flex-col items-center justify-center p-4 bg-slate-50/60 rounded-xl border border-slate-100 hover:bg-white hover:shadow-sm hover:border-purple-200 transition-all duration-300">
-                <div className={`${type.color} p-3 rounded-xl mb-3 text-lg shadow-3xs`}>
-                  <type.icon />
+        {/* ========== 3 COLUMN METRICS ========== */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-2xl p-5 border border-slate-200/60 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-400 mb-3">Distribusi Spesies</p>
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-blue-500" /> Anjing</span>
+                  <span>{dogsCount} ({Math.round((dogsCount/totalPets)*100)}%)</span>
                 </div>
-                <p className="font-bold text-sm text-slate-700">{type.name}</p>
-                <p className="text-xs font-bold text-[#432C81] bg-purple-50 px-2.5 py-0.5 rounded-full mt-1.5">{type.count} Pasien</p>
+                <ProgressBar percentage={(dogsCount/totalPets)*100} color="info" showPercentage={false} />
               </div>
-            ))}
+              <div>
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Kucing</span>
+                  <span>{catsCount} ({Math.round((catsCount/totalPets)*100)}%)</span>
+                </div>
+                <ProgressBar percentage={(catsCount/totalPets)*100} color="success" showPercentage={false} />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-5 border border-slate-200/60 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-400 mb-3">Keluhan Terbanyak</p>
+            {(() => {
+              const symptomCounts = appointments.reduce((acc, apt) => {
+                const key = apt.symptoms || "Checkup";
+                acc[key] = (acc[key] || 0) + 1;
+                return acc;
+              }, {});
+              const top = Object.entries(symptomCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3);
+              return top.map(([symptom, count], idx) => (
+                <div key={idx} className="flex justify-between items-center rounded-xl bg-slate-50 p-2.5 mb-2 border border-slate-100">
+                  <p className="text-xs font-bold text-slate-700">{symptom}</p>
+                  <span className="text-xs font-black text-[#432C81] bg-purple-50 px-2.5 py-1 rounded-lg">{count} Sesi</span>
+                </div>
+              ));
+            })()}
+          </div>
+
+          <div className="bg-white rounded-2xl p-5 border border-slate-200/60 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-400 mb-3">Status Kunjungan</p>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center bg-emerald-50 p-2.5 rounded-xl border border-emerald-100">
+                <span className="flex items-center gap-2 text-xs font-semibold text-emerald-700"><FaCheckCircle /> Selesai</span>
+                <span className="font-mono font-bold text-emerald-700">{completedAppointments}</span>
+              </div>
+              <div className="flex justify-between items-center bg-amber-50 p-2.5 rounded-xl border border-amber-100">
+                <span className="flex items-center gap-2 text-xs font-semibold text-amber-700"><FaSpinner className="animate-spin" /> Proses</span>
+                <span className="font-mono font-bold text-amber-700">{inProgressAppointments}</span>
+              </div>
+              <div className="flex justify-between items-center bg-blue-50 p-2.5 rounded-xl border border-blue-100">
+                <span className="flex items-center gap-2 text-xs font-semibold text-blue-700"><FaHourglassHalf /> Antri</span>
+                <span className="font-mono font-bold text-blue-700">{scheduledAppointments}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Dua Kolom Bawah: Kunjungan Terbaru & Jadwal Hari ini */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mb-8">
-          {/* Table Kunjungan Terbaru */}
+        {/* ========== RECENT VISITS & SCHEDULE ========== */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2">
-            <Card title="Riwayat Kunjungan Terbaru">
+            <Card title="Kunjungan Terbaru">
               <div className="overflow-x-auto -mx-5 -my-3">
-                <table className="table w-full text-xs text-left text-slate-600">
+                <table className="w-full text-xs text-left text-slate-600">
                   <thead className="text-[10px] uppercase bg-slate-50/80 text-slate-500 border-b border-slate-100">
                     <tr>
                       {recentHeaders.map((h, i) => (
@@ -620,8 +664,7 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Antrean Hari Ini */}
-          <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-5">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
             <div className="border-b border-slate-100 pb-3 mb-4 flex justify-between items-center">
               <div>
                 <h3 className="text-xs font-bold text-slate-900 tracking-wider uppercase">Antrean Hari Ini</h3>
@@ -656,44 +699,11 @@ export default function Dashboard() {
                 ))
               ) : (
                 <div className="text-center py-8 text-slate-400 text-xs font-medium">
-                  🎉 Hebat! Tidak ada sisa antrean untuk hari ini
+                  🎉 Tidak ada antrean hari ini
                 </div>
               )}
             </div>
           </div>
-        </div>
-
-        {/* 3 Status Ringkasan Tambahan di Footer */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card title="Status Kedatangan">
-            <div className="space-y-3 text-xs font-bold text-slate-600">
-              <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="flex items-center"><FaCheckCircle className="text-emerald-500 mr-2" /> Selesai Diperiksa</span>
-                <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-md font-mono">{completedAppointments}</span>
-              </div>
-              <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="flex items-center"><FaSpinner className="text-amber-500 mr-2 animate-spin" /> Di Ruang Konsultasi</span>
-                <span className="px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-md font-mono">{inProgressAppointments}</span>
-              </div>
-              <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="flex items-center"><FaHourglassHalf className="text-blue-500 mr-2" /> Menunggu Antrean</span>
-                <span className="px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-md font-mono">{scheduledAppointments}</span>
-              </div>
-            </div>
-          </Card>
-
-          <Card title="Statistik Spesies Utama">
-            <div className="space-y-3 text-xs font-bold text-slate-600">
-              <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="flex items-center"><FaDog className="text-blue-500 mr-2" /> Ras Anjing</span>
-                <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded-md font-mono">{dogsCount}</span>
-              </div>
-              <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="flex items-center"><FaCat className="text-orange-500 mr-2" /> Ras Kucing</span>
-                <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded-md font-mono">{catsCount}</span>
-              </div>
-            </div>
-          </Card>
         </div>
       </Container>
     </div>
