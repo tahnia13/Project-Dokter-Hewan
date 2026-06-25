@@ -9,6 +9,9 @@ import React, { Suspense } from "react";
 function App() {
   // ========== PUBLIC PAGE (GUEST) ==========
   const LandingPage = React.lazy(() => import("./pages/LandingPage"));
+  
+  // ========== NEW: MEMBER PAGE ==========
+  const MemberPage = React.lazy(() => import("./pages/MemberPage")); // Halaman Member Baru
 
   // ========== MAIN PAGES (ADMIN) ==========
   const Dashboard = React.lazy(() => import("./pages/Dashboard"))
@@ -26,7 +29,6 @@ function App() {
   const ComponentShowcase = React.lazy(() => import("./pages/ComponentShowcase"));
   const CreateUser = React.lazy(() => import("./pages/auth/CreateUser"));
 
-  
   // ========== DETAIL PAGES ==========
   const PetDetail = React.lazy(() => import("./pages/PetDetail"))
   const AppointmentDetail = React.lazy(() => import("./pages/AppointmentDetail"))
@@ -49,6 +51,9 @@ function App() {
         
         {/* Landing Page - Halaman Utama untuk Guest (tanpa login) */}
         <Route path="/" element={<LandingPage />} />
+        
+        {/* Halaman Dashboard Member (Bebas dari MainLayout Admin) */}
+        <Route path="/member" element={<MemberPage />} />
         
         {/* Auth Routes */}
         <Route element={<AuthLayout />}>

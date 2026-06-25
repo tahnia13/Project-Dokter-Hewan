@@ -475,6 +475,12 @@ export default function LandingPage() {
             >
               Daftar
             </button>
+            <button
+              onClick={() => navigate("/member")}
+              className="text-[#A78BFA] hover:text-white text-sm font-bold transition-all cursor-pointer px-4 py-2 rounded-xl hover:bg-purple-500/10 border border-purple-500/20"
+            >
+              Member Area
+            </button>
           </div>
         </div>
       </nav>
@@ -496,7 +502,7 @@ export default function LandingPage() {
         <div className="container mx-auto relative z-10">
           <div className="flex justify-center mb-8">
             <Badge color="violet">
-              <FaMagic /> Klinik Hewan  · Terpercaya 2026
+              <FaMagic /> Klinik Hewan · Terpercaya 2026
             </Badge>
           </div>
 
@@ -714,11 +720,14 @@ export default function LandingPage() {
                       {promo.deadline}
                     </span>
                     <button
-                      onClick={() => navigate("/register")}
-                      className="text-xs font-black px-4 py-2 rounded-xl transition-all cursor-pointer hover:scale-105"
-                      style={{ background: promo.accent, color: "#fff" }}
+                      onClick={() =>
+                        navigate("/member", {
+                          state: { promoName: promo.title },
+                        })
+                      }
+                      className="w-full mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-900/40 text-center block cursor-pointer"
                     >
-                      Klaim →
+                      Klaim Terbatas
                     </button>
                   </div>
                 </div>
@@ -848,6 +857,7 @@ export default function LandingPage() {
         className={`relative z-10 py-28 px-6 ${animCls("member-benefits")}`}
       >
         <div className="container mx-auto">
+          {/* BAGIAN JUDUL & DESKRIPSI (SEKARANG SUDAH KEMBALI) */}
           <div className="text-center mb-16">
             <Badge color="gold">
               <FaCrown /> Program Loyalitas
@@ -864,6 +874,7 @@ export default function LandingPage() {
             </p>
           </div>
 
+          {/* BADGE STATISTIK JUMLAH MEMBER */}
           <div className="flex flex-wrap justify-center gap-4 mb-16">
             {[
               { label: "Gold", count: goldMembers, color: "#F59E0B" },
@@ -889,48 +900,55 @@ export default function LandingPage() {
             ))}
           </div>
 
+          {/* GRID KARTU TIER MEMBER (TOMBOL RATA BAWAH & NAVIGASI AKTIF) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {memberTiers.map((tier, i) => (
               <div
                 key={i}
-                className="relative group rounded-3xl p-8 border transition-all duration-500 hover:-translate-y-3"
+                className="relative group rounded-3xl p-8 border transition-all duration-500 hover:-translate-y-3 flex flex-col justify-between h-full"
                 style={{
                   background: `radial-gradient(ellipse at top, ${tier.glow}, transparent 60%), rgba(255,255,255,0.03)`,
                   borderColor: "rgba(255,255,255,0.08)",
                 }}
               >
-                <div
-                  className={`bg-gradient-to-r ${tier.gradient} rounded-2xl p-4 text-slate-900 text-center mb-7 shadow-xl`}
-                >
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <tier.icon className="text-2xl" />
-                    <span className="text-xl font-black">{tier.tier}</span>
+                {/* Bagian Atas: Header & List Benefit */}
+                <div>
+                  <div
+                    className={`bg-gradient-to-r ${tier.gradient} rounded-2xl p-4 text-slate-900 text-center mb-7 shadow-xl`}
+                  >
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <tier.icon className="text-2xl" />
+                      <span className="text-xl font-black">{tier.tier}</span>
+                    </div>
+                    <span className="text-[11px] font-bold bg-black/20 px-3 py-0.5 rounded-full">
+                      {tier.req}
+                    </span>
                   </div>
-                  <span className="text-[11px] font-bold bg-black/20 px-3 py-0.5 rounded-full">
-                    {tier.req}
-                  </span>
+
+                  <ul className="space-y-3.5 mb-8">
+                    {tier.benefits.map((b, j) => (
+                      <li
+                        key={j}
+                        className="flex items-start gap-2.5 text-sm font-medium"
+                        style={{ color: tokens.textMuted }}
+                      >
+                        <FaCheckCircle className="text-emerald-400 mt-0.5 flex-shrink-0" />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                <ul className="space-y-3.5 mb-8">
-                  {tier.benefits.map((b, j) => (
-                    <li
-                      key={j}
-                      className="flex items-start gap-2.5 text-sm font-medium"
-                      style={{ color: tokens.textMuted }}
-                    >
-                      <FaCheckCircle className="text-emerald-400 mt-0.5 flex-shrink-0" />
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  onClick={() => navigate("/register")}
-                  className="w-full py-3 rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer transition-all border border-white/10 hover:border-white/30 text-white"
-                  style={{ background: "rgba(255,255,255,0.06)" }}
-                >
-                  Mulai Bergabung
-                </button>
+                {/* Bagian Bawah: Tombol (Selalu Sejajar di Paling Bawah) */}
+                <div>
+                  <button
+                    onClick={() => navigate("/member")}
+                    className="w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer transition-all border border-white/10 hover:border-purple-500 hover:bg-purple-600/20 text-white block text-center"
+                    style={{ background: "rgba(255,255,255,0.06)" }}
+                  >
+                    Mulai Bergabung
+                  </button>
+                </div>
               </div>
             ))}
           </div>
