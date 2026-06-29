@@ -1,13 +1,14 @@
+// src/pages/auth/Login.jsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock, FaPaw, FaEye, FaEyeSlash, FaUserShield } from "react-icons/fa";
-import { loginUser } from "../../lib/auth"; 
+import { loginUser } from "../../lib/auth";
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user");
+  const [role, setRole] = useState("user"); // default: user
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -19,17 +20,24 @@ export default function Login() {
     setLoading(false);
 
     if (user) {
-      if (user.role !== role) {
-        alert(`Gagal Masuk: Hak akses Anda terdaftar sebagai ${user.role.toUpperCase()}, bukan ${role.toUpperCase()}!`);
-        return;
-      }
-
-      alert(`Selamat datang kembali, ${user.name} (${user.role.toUpperCase()})!`);
+      alert(`Selamat datang kembali, ${user.name}!`);
       
-      // ========== PERUBAHAN DI SINI ==========
-      // Redirect ke /dashboard (bukan "/")
-      navigate("/dashboard");
-      // =====================================
+      // ========== REDIRECT BERDASARKAN ROLE YANG DIPILIH ==========
+      // Bukan dari database, tapi dari pilihan user di form!
+      switch (role) {
+        case 'admin':
+          navigate('/dashboard');
+          break;
+        case 'user':
+          navigate('/member');
+          break;
+        case 'guest':
+          navigate('/');
+          break;
+        default:
+          navigate('/');
+      }
+      // ===========================================================
     }
   };
 
@@ -38,16 +46,16 @@ export default function Login() {
       <div className="bg-white p-8 rounded-2xl shadow-md border border-slate-200/60 w-full max-w-sm">
         
         <form onSubmit={handleLoginSubmit} className="space-y-4">
-          {/* Header Form */}
+          {/* Header */}
           <div className="text-center mb-5">
             <div className="bg-gradient-to-tr from-[#432C81] to-[#6D47B8] w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
               <FaPaw className="text-white text-2xl" />
             </div>
             <h3 className="text-lg font-bold text-[#432C81] font-nunito uppercase tracking-tight">Login ke Akun Anda</h3>
-            <p className="text-xs text-gray-500 mt-0.5">Masukkan email, password, dan wewenang cloud Anda</p>
+            <p className="text-xs text-gray-500 mt-0.5">Masukkan email, password, dan pilih role Anda</p>
           </div>
 
-          {/* Input: Email */}
+          {/* Email */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Email Address</label>
             <div className="relative">
@@ -57,13 +65,13 @@ export default function Login() {
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                 className="w-full text-xs bg-slate-50 border border-slate-200 focus:border-purple-400 focus:bg-white rounded-xl py-2.5 pl-9 pr-3.5 outline-none transition-all" 
-                placeholder="admin@petcare.com" 
+                placeholder="email@domain.com" 
                 required 
               />
             </div>
           </div>
 
-          {/* Input: Password */}
+          {/* Password */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Password</label>
             <div className="relative">
@@ -86,9 +94,9 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Pilihan Hak Akses (Role) */}
+          {/* ========== PILIHAN ROLE ========== */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Masuk Sebagai (Role)</label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Login Sebagai (Role)</label>
             <div className="relative">
               <FaUserShield className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs" />
               <select
@@ -96,12 +104,13 @@ export default function Login() {
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full text-xs bg-slate-50 border border-slate-200 focus:border-purple-400 focus:bg-white rounded-xl py-2.5 pl-9 pr-3.5 outline-none cursor-pointer font-bold text-slate-700 appearance-none"
               >
-                <option value="admin">Admin Utama</option>
-                <option value="vet">Dokter Spesialis (Veterinarian)</option>
-                <option value="user">User Umum / Pemilik Hewan</option>
+                <option value="admin">Admin</option>
+                <option value="user">User / Member</option>
+                <option value="guest">Guest</option>
               </select>
             </div>
           </div>
+          {/* ================================== */}
 
           {/* Lupa Password */}
           <div className="flex justify-end">

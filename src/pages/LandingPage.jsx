@@ -36,6 +36,8 @@ import {
   FaCalendarAlt,
   FaMagic,
   FaHeartbeat,
+  FaGem,
+  FaInfinity,
 } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -62,10 +64,14 @@ const tokens = {
   textFaint: "#475569",
 };
 
-/* ─── Reusable Glass Card ─── */
+/* ─── Components ─── */
+
+// Glass Card
 const GlassCard = ({ children, className = "", hover = true }) => (
   <div
-    className={`relative backdrop-blur-xl border rounded-3xl transition-all duration-500 ${hover ? "hover:-translate-y-2 hover:border-violet-500/30" : ""} ${className}`}
+    className={`relative backdrop-blur-xl border rounded-3xl transition-all duration-500 ${
+      hover ? "hover:-translate-y-2 hover:border-violet-500/30" : ""
+    } ${className}`}
     style={{
       background: tokens.card,
       borderColor: tokens.border,
@@ -75,7 +81,7 @@ const GlassCard = ({ children, className = "", hover = true }) => (
   </div>
 );
 
-/* ─── Badge ─── */
+// Badge
 const Badge = ({ children, color = "violet" }) => {
   const colors = {
     violet: "from-violet-600/80 to-purple-700/80 text-violet-100",
@@ -91,6 +97,23 @@ const Badge = ({ children, color = "violet" }) => {
     </span>
   );
 };
+
+// Gradient Button
+const GradientButton = ({ children, onClick, icon: Icon, className = "" }) => (
+  <button
+    onClick={onClick}
+    className={`group relative overflow-hidden rounded-2xl px-8 py-4 font-bold text-white transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(124,58,237,0.4)] ${className}`}
+    style={{
+      background: "linear-gradient(135deg, #7C3AED, #9333EA)",
+    }}
+  >
+    <span className="relative z-10 flex items-center gap-3">
+      {Icon && <Icon className="text-lg group-hover:rotate-12 transition-transform duration-300" />}
+      {children}
+    </span>
+    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+  </button>
+);
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -109,10 +132,10 @@ export default function LandingPage() {
   const totalVets = veterinarians.filter((v) => v.status === "Active").length;
   const goldMembers = owners.filter((o) => o.totalVisits >= 10).length;
   const silverMembers = owners.filter(
-    (o) => o.totalVisits >= 5 && o.totalVisits < 10,
+    (o) => o.totalVisits >= 5 && o.totalVisits < 10
   ).length;
   const bronzeMembers = owners.filter(
-    (o) => o.totalVisits >= 1 && o.totalVisits < 5,
+    (o) => o.totalVisits >= 1 && o.totalVisits < 5
   ).length;
   const newMembers = owners.filter((o) => o.totalVisits === 0).length;
 
@@ -137,6 +160,7 @@ export default function LandingPage() {
   const registerRef = (el, key) => {
     if (el) sectionRefs.current[key] = el;
   };
+
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const scrollTo = (id) =>
     document
@@ -144,7 +168,9 @@ export default function LandingPage() {
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const animCls = (key) =>
-    `transition-all duration-700 ease-out ${isVisible[key] ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`;
+    `transition-all duration-700 ease-out ${
+      isVisible[key] ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+    }`;
 
   const promos = [
     {
@@ -220,7 +246,7 @@ export default function LandingPage() {
     },
     {
       tier: "Silver",
-      icon: FaAward,
+      icon: FaGem,
       req: "5–9 Kunjungan",
       gradient: "from-slate-300 to-slate-400",
       glow: "rgba(148,163,184,0.2)",
@@ -393,7 +419,11 @@ export default function LandingPage() {
         />
       </div>
 
-      {/* ══════════════ NAVBAR ══════════════ */}
+      {/* ════════════════════════════════════════ */}
+      {/* AREA TOP: NAVBAR & HERO */}
+      {/* ════════════════════════════════════════ */}
+
+      {/* ─── NAVBAR ─── */}
       <nav
         className="fixed top-0 left-0 right-0 z-[999] w-full border-b transition-all duration-300"
         style={{
@@ -412,7 +442,6 @@ export default function LandingPage() {
         }}
       >
         <div className="container mx-auto flex justify-between items-center max-w-7xl px-4">
-          {/* Logo */}
           <button
             onClick={scrollToTop}
             className="flex items-center gap-3 group cursor-pointer flex-shrink-0"
@@ -436,14 +465,12 @@ export default function LandingPage() {
             </span>
           </button>
 
-          {/* Nav Links */}
           <div className="hidden lg:flex items-center gap-1">
             {[
-              { label: "Home", id: "home" },
-              { label: "Promo", id: "promos" },
+              { label: "Beranda", id: "home" },
               { label: "Layanan", id: "services" },
-              { label: "Keuntungan", id: "member-benefits" },
-              { label: "Cara Daftar", id: "steps" },
+              { label: "Keunggulan", id: "why-us" },
+              { label: "Member", id: "member-benefits" },
               { label: "Testimoni", id: "testimonials" },
               { label: "FAQ", id: "faq" },
             ].map((m, i) => (
@@ -457,7 +484,6 @@ export default function LandingPage() {
             ))}
           </div>
 
-          {/* CTA Buttons */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <button
               onClick={() => navigate("/login")}
@@ -465,16 +491,13 @@ export default function LandingPage() {
             >
               Login
             </button>
-            <button
+            <GradientButton
               onClick={() => navigate("/register")}
-              className="text-sm font-bold px-5 py-2.5 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5"
-              style={{
-                background: "linear-gradient(135deg, #7C3AED, #9333EA)",
-                boxShadow: "0 0 24px rgba(124,58,237,0.4)",
-              }}
+              className="text-sm px-5 py-2.5"
+              icon={FaRocket}
             >
               Daftar
-            </button>
+            </GradientButton>
             <button
               onClick={() => navigate("/member")}
               className="text-[#A78BFA] hover:text-white text-sm font-bold transition-all cursor-pointer px-4 py-2 rounded-xl hover:bg-purple-500/10 border border-purple-500/20"
@@ -485,174 +508,253 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Spacer */}
-      <div style={{ height: "80px", width: "100%", flexShrink: 0 }}></div>
+      {/* ─── HERO SECTION ─── */}
+      <section
+        id="home"
+        ref={(el) => registerRef(el, "home")}
+        className="relative z-10 min-h-[90vh] flex items-center px-6 pt-28 pb-16 overflow-hidden"
+        style={{
+          background: `
+            radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.08), transparent 60%),
+            radial-gradient(ellipse at 80% 50%, rgba(6,182,212,0.05), transparent 60%)
+          `,
+        }}
+      >
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left Content */}
+            <div className="space-y-8">
+              <Badge color="violet">
+                <FaMagic /> Klinik Hewan Premium 2026
+              </Badge>
 
-      {/* ══════════════ HERO ══════════════ */}
-      <section className="relative z-10 pt-12 pb-40 px-6 text-center overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage:
-              "radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px)",
-            backgroundSize: "30px 30px",
-          }}
-        />
-
-        <div className="container mx-auto relative z-10">
-          <div className="flex justify-center mb-8">
-            <Badge color="violet">
-              <FaMagic /> Klinik Hewan · Terpercaya 2026
-            </Badge>
-          </div>
-
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[88px] font-black tracking-tight leading-[0.95] mb-8 max-w-5xl mx-auto">
-            <span className="block text-white">Kesehatan Pet</span>
-            <span
-              className="block"
-              style={{
-                background: "linear-gradient(90deg, #A78BFA, #7C3AED, #06B6D4)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              Adalah Prioritas
-            </span>
-            <span className="block text-white">Kami.</span>
-          </h1>
-
-          <p
-            className="text-lg sm:text-xl max-w-2xl mx-auto mb-12 leading-relaxed"
-            style={{ color: tokens.textMuted }}
-          >
-            Tim dokter bersertifikat, fasilitas modern steril, dan program
-            loyalty member yang memberikan reward nyata setiap kunjungan.
-          </p>
-
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <button
-              onClick={() => navigate("/register")}
-              className="group w-full sm:w-auto flex items-center justify-center gap-2.5 text-white font-bold px-8 py-4 rounded-2xl cursor-pointer transition-all hover:-translate-y-1 text-base"
-              style={{
-                background: "linear-gradient(135deg, #7C3AED, #9333EA)",
-                boxShadow: "0 0 40px rgba(124,58,237,0.5)",
-              }}
-            >
-              <FaRocket className="group-hover:rotate-12 transition-transform" />
-              Mulai Daftar — Gratis
-            </button>
-            <button
-              onClick={() => scrollTo("promos")}
-              className="w-full sm:w-auto flex items-center justify-center gap-2.5 font-bold px-8 py-4 rounded-2xl cursor-pointer transition-all border text-sm"
-              style={{
-                borderColor: tokens.border,
-                color: tokens.text,
-                background: "rgba(255,255,255,0.04)",
-              }}
-            >
-              <FaFire style={{ color: tokens.gold }} /> Lihat Promo Bulan Ini
-            </button>
-          </div>
-
-          <div className="flex justify-center mt-16">
-            <div className="relative">
-              <div
-                className="absolute inset-0 rounded-3xl blur-2xl"
-                style={{ background: tokens.violet, opacity: 0.5 }}
-              />
-              <div
-                className="relative rounded-3xl p-6 border"
-                style={{
-                  background: "rgba(124,58,237,0.15)",
-                  borderColor: "rgba(124,58,237,0.4)",
-                }}
-              >
-                <FaPaw
-                  className="text-5xl"
-                  style={{ color: tokens.violetLight }}
+              <div className="relative">
+                <div
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full blur-[150px] opacity-30 pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #7C3AED, #A855F7, #EC4899)",
+                  }}
                 />
+                <div className="relative z-10 space-y-3">
+                  <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight text-white leading-[1.1]">
+                    Kesehatan Pet Prioritas Kami
+                  </h1>
+                </div>
+              </div>
+
+              <p
+                className="text-lg leading-relaxed max-w-lg"
+                style={{ color: tokens.textMuted }}
+              >
+                Tim dokter bersertifikat, fasilitas modern steril, dan program
+                loyalty member yang memberikan reward nyata setiap kunjungan.
+              </p>
+
+              <div className="flex flex-wrap gap-4">
+                <GradientButton
+                  onClick={() => navigate("/register")}
+                  icon={FaRocket}
+                >
+                  Mulai Sekarang — Gratis
+                </GradientButton>
+                <button
+                  onClick={() => scrollTo("promos")}
+                  className="group px-8 py-4 rounded-2xl font-bold text-white/70 hover:text-white transition-all duration-300 border hover:border-violet-500/30"
+                  style={{
+                    borderColor: tokens.border,
+                    background: "rgba(255,255,255,0.03)",
+                  }}
+                >
+                  <span className="flex items-center gap-2">
+                    Lihat Promo
+                    <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
+                  </span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-8 pt-4">
+                <div className="flex -space-x-3">
+                  {["#7C3AED", "#A78BFA", "#EC4899", "#06B6D4"].map(
+                    (color, i) => (
+                      <div
+                        key={i}
+                        className="w-10 h-10 rounded-full border-2 border-[#07071A] flex items-center justify-center text-xs font-bold text-white"
+                        style={{ background: color }}
+                      >
+                        {["A", "B", "C", "D"][i]}
+                      </div>
+                    )
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar key={i} className="text-yellow-400 text-sm" />
+                    ))}
+                  </div>
+                  <p className="text-sm" style={{ color: tokens.textMuted }}>
+                    <span className="text-white font-bold">4.9</span> dari 500+
+                    ulasan
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Content - Hero Visual */}
+            <div className="relative hidden lg:block">
+              <div className="relative">
+                <div
+                  className="absolute -top-20 -left-20 w-96 h-96 rounded-full blur-3xl opacity-20"
+                  style={{ background: tokens.violet }}
+                />
+                <div
+                  className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full blur-3xl opacity-20"
+                  style={{ background: tokens.cyan }}
+                />
+
+                <div
+                  className="relative bg-gradient-to-br from-purple-500/20 via-violet-500/10 to-pink-500/10 rounded-3xl p-12 border border-white/10 backdrop-blur-xl shadow-2xl"
+                  style={{
+                    boxShadow:
+                      "0 0 100px rgba(124,58,237,0.1), inset 0 0 100px rgba(124,58,237,0.05)",
+                  }}
+                >
+                  <div className="text-center">
+                    <div className="relative w-48 h-48 mx-auto mb-8">
+                      <div
+                        className="absolute inset-0 rounded-full animate-pulse"
+                        style={{
+                          background: "linear-gradient(135deg, #7C3AED, #EC4899)",
+                          opacity: 0.3,
+                        }}
+                      />
+                      <div
+                        className="relative w-full h-full rounded-full flex items-center justify-center"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #7C3AED, #A855F7, #EC4899)",
+                          boxShadow: "0 0 80px rgba(124,58,237,0.3)",
+                        }}
+                      >
+                        <FaPaw className="text-white text-7xl opacity-90" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-white/60">
+                        Lebih dari
+                      </p>
+                      <p className="text-5xl font-black text-white">
+                        10,000+
+                      </p>
+                      <p className="text-sm font-medium text-white/60">
+                        Hewan dipercayakan
+                      </p>
+                    </div>
+
+                    <div className="mt-8 grid grid-cols-3 gap-4 pt-8 border-t border-white/10">
+                      {[
+                        { value: "98%", label: "Kepuasan" },
+                        { value: "24/7", label: "Layanan" },
+                        { value: "⭐ 4.9", label: "Rating" },
+                      ].map((item, i) => (
+                        <div
+                          key={i}
+                          className="py-3 px-2 rounded-xl bg-white/5 backdrop-blur-sm border border-white/5"
+                        >
+                          <p className="text-xl font-black text-white">
+                            {item.value}
+                          </p>
+                          <p className="text-xs text-white/50">{item.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══════════════ STATS BAR ══════════════ */}
-      <section className="relative z-10 px-6 -mt-8">
-        <div className="container mx-auto">
-          <GlassCard
-            className="p-6 sm:p-8 grid grid-cols-2 lg:grid-cols-4 gap-6"
-            hover={false}
+      {/* ─── TRUST SIGNALS (STATS) ─── */}
+      <section className="relative z-10 px-6 -mt-8 mb-16">
+        <div className="container mx-auto max-w-7xl">
+          <div
+            className="rounded-3xl p-8 grid grid-cols-2 md:grid-cols-4 gap-8"
+            style={{
+              background: tokens.card,
+              border: `1px solid ${tokens.border}`,
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+            }}
           >
             {[
               {
                 icon: FaPaw,
-                val: totalPets,
+                value: totalPets.toLocaleString(),
                 label: "Pasien Terdaftar",
                 color: tokens.violetLight,
               },
               {
                 icon: FaUserMd,
-                val: totalVets,
-                label: "Dokter Aktif",
+                value: totalVets,
+                label: "Dokter Spesialis",
                 color: tokens.cyan,
               },
               {
                 icon: FaUsers,
-                val: totalOwners,
+                value: totalOwners.toLocaleString(),
                 label: "Member Aktif",
                 color: tokens.gold,
               },
               {
                 icon: FaStar,
-                val: "4.9★",
+                value: "4.9★",
                 label: "Rating Kepuasan",
-                color: "#F43F5E",
+                color: tokens.rose,
               },
             ].map((stat, i) => (
-              <div
-                key={i}
-                className="text-center flex flex-col items-center gap-2 lg:border-r border-white/5 last:border-0"
-              >
+              <div key={i} className="text-center space-y-3">
                 <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                  style={{ background: `${stat.color}18` }}
+                  className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center"
+                  style={{
+                    background: `${stat.color}20`,
+                    border: `1px solid ${stat.color}30`,
+                  }}
                 >
-                  <stat.icon
-                    style={{ color: stat.color, fontSize: "1.2rem" }}
-                  />
+                  <stat.icon style={{ color: stat.color, fontSize: "1.5rem" }} />
                 </div>
-                <p className="text-3xl font-black text-white">{stat.val}</p>
-                <p
-                  className="text-xs font-semibold"
-                  style={{ color: tokens.textMuted }}
-                >
+                <p className="text-3xl font-black text-white">{stat.value}</p>
+                <p className="text-sm font-medium" style={{ color: tokens.textMuted }}>
                   {stat.label}
                 </p>
               </div>
             ))}
-          </GlassCard>
+          </div>
         </div>
       </section>
 
-      {/* ══════════════ PROMOS ══════════════ */}
+      {/* ════════════════════════════════════════ */}
+      {/* AREA MIDDLE: FEATURES & TRUST */}
+      {/* ════════════════════════════════════════ */}
+
+      {/* ─── PROMOS ─── */}
       <section
         id="promos"
         ref={(el) => registerRef(el, "promos")}
-        className={`relative z-10 py-28 px-6 ${animCls("promos")}`}
+        className={`relative z-10 py-20 px-6 ${animCls("promos")}`}
       >
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16 space-y-4">
             <Badge color="rose">
-              <FaFire /> Penawaran Eksklusif 2026
+              <FaFire /> Penawaran Eksklusif
             </Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mt-5 mb-4 text-white tracking-tight">
+            <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight">
               Promo Bulan Ini
             </h2>
-            <p
-              className="text-base max-w-md mx-auto"
-              style={{ color: tokens.textMuted }}
-            >
+            <p className="text-base max-w-md mx-auto" style={{ color: tokens.textMuted }}>
               Voucher dan potongan harga terbatas — klaim sebelum kehabisan.
             </p>
           </div>
@@ -737,22 +839,19 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════ SERVICES ══════════════ */}
+      {/* ─── SERVICES ─── */}
       <section
         id="services"
         ref={(el) => registerRef(el, "services")}
-        className={`relative z-10 py-28 px-6 ${animCls("services")}`}
+        className={`relative z-10 py-20 px-6 ${animCls("services")}`}
       >
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16 space-y-4">
             <Badge color="cyan">Layanan Klinis</Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mt-5 mb-4 text-white tracking-tight">
+            <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight">
               Penanganan Komprehensif
             </h2>
-            <p
-              className="text-base max-w-md mx-auto"
-              style={{ color: tokens.textMuted }}
-            >
+            <p className="text-base max-w-md mx-auto" style={{ color: tokens.textMuted }}>
               Fasilitas medis premium dengan standar diagnostik modern.
             </p>
           </div>
@@ -788,9 +887,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════ WHY US ══════════════ */}
-      <section className="relative z-10 py-28 px-6">
-        <div className="container mx-auto">
+      {/* ─── WHY US ─── */}
+      <section
+        id="why-us"
+        ref={(el) => registerRef(el, "why-us")}
+        className={`relative z-10 py-20 px-6 ${animCls("why-us")}`}
+      >
+        <div className="container mx-auto max-w-7xl">
           <div className="flex flex-col lg:flex-row gap-16 items-center">
             <div className="lg:w-1/2">
               <Badge color="violet">Keunggulan Kami</Badge>
@@ -807,16 +910,12 @@ export default function LandingPage() {
                 melainkan sebagai mitra jangka panjang dalam menjaga kualitas
                 hidup hewan kesayangan Anda.
               </p>
-              <button
+              <GradientButton
                 onClick={() => navigate("/register")}
-                className="flex items-center gap-2 font-bold text-sm px-6 py-3 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5"
-                style={{
-                  background: "linear-gradient(135deg, #7C3AED, #9333EA)",
-                  boxShadow: "0 0 24px rgba(124,58,237,0.35)",
-                }}
+                icon={FaArrowRight}
               >
-                Mulai Perjalanan <FaArrowRight />
-              </button>
+                Mulai Perjalanan
+              </GradientButton>
             </div>
 
             <div className="lg:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -850,127 +949,19 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════ MEMBER BENEFITS ══════════════ */}
-      <section
-        id="member-benefits"
-        ref={(el) => registerRef(el, "member-benefits")}
-        className={`relative z-10 py-28 px-6 ${animCls("member-benefits")}`}
-      >
-        <div className="container mx-auto">
-          {/* BAGIAN JUDUL & DESKRIPSI (SEKARANG SUDAH KEMBALI) */}
-          <div className="text-center mb-16">
-            <Badge color="gold">
-              <FaCrown /> Program Loyalitas
-            </Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mt-5 mb-4 text-white tracking-tight">
-              Tier Member Eksklusif
-            </h2>
-            <p
-              className="text-base max-w-md mx-auto"
-              style={{ color: tokens.textMuted }}
-            >
-              Setiap kunjungan membawa Anda lebih dekat ke reward yang lebih
-              besar.
-            </p>
-          </div>
-
-          {/* BADGE STATISTIK JUMLAH MEMBER */}
-          <div className="flex flex-wrap justify-center gap-4 mb-16">
-            {[
-              { label: "Gold", count: goldMembers, color: "#F59E0B" },
-              { label: "Silver", count: silverMembers, color: "#94A3B8" },
-              { label: "Bronze", count: bronzeMembers, color: "#D97706" },
-              { label: "New", count: newMembers, color: "#7C3AED" },
-            ].map((m, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 px-5 py-3 rounded-2xl border"
-                style={{
-                  borderColor: `${m.color}30`,
-                  background: `${m.color}10`,
-                }}
-              >
-                <span className="text-2xl font-black text-white">
-                  {m.count}
-                </span>
-                <span className="text-sm font-bold" style={{ color: m.color }}>
-                  {m.label}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* GRID KARTU TIER MEMBER (TOMBOL RATA BAWAH & NAVIGASI AKTIF) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {memberTiers.map((tier, i) => (
-              <div
-                key={i}
-                className="relative group rounded-3xl p-8 border transition-all duration-500 hover:-translate-y-3 flex flex-col justify-between h-full"
-                style={{
-                  background: `radial-gradient(ellipse at top, ${tier.glow}, transparent 60%), rgba(255,255,255,0.03)`,
-                  borderColor: "rgba(255,255,255,0.08)",
-                }}
-              >
-                {/* Bagian Atas: Header & List Benefit */}
-                <div>
-                  <div
-                    className={`bg-gradient-to-r ${tier.gradient} rounded-2xl p-4 text-slate-900 text-center mb-7 shadow-xl`}
-                  >
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <tier.icon className="text-2xl" />
-                      <span className="text-xl font-black">{tier.tier}</span>
-                    </div>
-                    <span className="text-[11px] font-bold bg-black/20 px-3 py-0.5 rounded-full">
-                      {tier.req}
-                    </span>
-                  </div>
-
-                  <ul className="space-y-3.5 mb-8">
-                    {tier.benefits.map((b, j) => (
-                      <li
-                        key={j}
-                        className="flex items-start gap-2.5 text-sm font-medium"
-                        style={{ color: tokens.textMuted }}
-                      >
-                        <FaCheckCircle className="text-emerald-400 mt-0.5 flex-shrink-0" />
-                        <span>{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Bagian Bawah: Tombol (Selalu Sejajar di Paling Bawah) */}
-                <div>
-                  <button
-                    onClick={() => navigate("/member")}
-                    className="w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer transition-all border border-white/10 hover:border-purple-500 hover:bg-purple-600/20 text-white block text-center"
-                    style={{ background: "rgba(255,255,255,0.06)" }}
-                  >
-                    Mulai Bergabung
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════ STEPS ══════════════ */}
+      {/* ─── STEPS / HOW IT WORKS ─── */}
       <section
         id="steps"
         ref={(el) => registerRef(el, "steps")}
-        className={`relative z-10 py-28 px-6 ${animCls("steps")}`}
+        className={`relative z-10 py-20 px-6 ${animCls("steps")}`}
       >
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16 space-y-4">
             <Badge color="cyan">Cara Bergabung</Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mt-5 mb-4 text-white tracking-tight">
-              4 Langkah Mudah
+            <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight">
+              Mudah & Cepat
             </h2>
-            <p
-              className="text-base max-w-xs mx-auto"
-              style={{ color: tokens.textMuted }}
-            >
+            <p className="text-base max-w-md mx-auto" style={{ color: tokens.textMuted }}>
               Dari pendaftaran hingga menikmati reward — semua simpel.
             </p>
           </div>
@@ -1023,22 +1014,115 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════ TESTIMONIALS ══════════════ */}
+      {/* ─── MEMBER BENEFITS ─── */}
+      <section
+        id="member-benefits"
+        ref={(el) => registerRef(el, "member-benefits")}
+        className={`relative z-10 py-20 px-6 ${animCls("member-benefits")}`}
+      >
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16 space-y-4">
+            <Badge color="gold">
+              <FaCrown /> Program Loyalitas
+            </Badge>
+            <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight">
+              Tier Member Eksklusif
+            </h2>
+            <p className="text-base max-w-md mx-auto" style={{ color: tokens.textMuted }}>
+              Setiap kunjungan membawa Anda lebih dekat ke reward yang lebih besar.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-4 mb-16">
+            {[
+              { label: "Gold", count: goldMembers, color: "#F59E0B" },
+              { label: "Silver", count: silverMembers, color: "#94A3B8" },
+              { label: "Bronze", count: bronzeMembers, color: "#D97706" },
+              { label: "New", count: newMembers, color: "#7C3AED" },
+            ].map((m, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 px-5 py-3 rounded-2xl border"
+                style={{
+                  borderColor: `${m.color}30`,
+                  background: `${m.color}10`,
+                }}
+              >
+                <span className="text-2xl font-black text-white">
+                  {m.count}
+                </span>
+                <span className="text-sm font-bold" style={{ color: m.color }}>
+                  {m.label}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {memberTiers.map((tier, i) => (
+              <div
+                key={i}
+                className="relative group rounded-3xl p-8 border transition-all duration-500 hover:-translate-y-3 flex flex-col justify-between h-full"
+                style={{
+                  background: `radial-gradient(ellipse at top, ${tier.glow}, transparent 60%), rgba(255,255,255,0.03)`,
+                  borderColor: "rgba(255,255,255,0.08)",
+                }}
+              >
+                <div>
+                  <div
+                    className={`bg-gradient-to-r ${tier.gradient} rounded-2xl p-4 text-slate-900 text-center mb-7 shadow-xl`}
+                  >
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <tier.icon className="text-2xl" />
+                      <span className="text-xl font-black">{tier.tier}</span>
+                    </div>
+                    <span className="text-[11px] font-bold bg-black/20 px-3 py-0.5 rounded-full">
+                      {tier.req}
+                    </span>
+                  </div>
+
+                  <ul className="space-y-3.5 mb-8">
+                    {tier.benefits.map((b, j) => (
+                      <li
+                        key={j}
+                        className="flex items-start gap-2.5 text-sm font-medium"
+                        style={{ color: tokens.textMuted }}
+                      >
+                        <FaCheckCircle className="text-emerald-400 mt-0.5 flex-shrink-0" />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <button
+                    onClick={() => navigate("/member")}
+                    className="w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer transition-all border border-white/10 hover:border-purple-500 hover:bg-purple-600/20 text-white block text-center"
+                    style={{ background: "rgba(255,255,255,0.06)" }}
+                  >
+                    Mulai Bergabung
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── TESTIMONIALS ─── */}
       <section
         id="testimonials"
         ref={(el) => registerRef(el, "testimonials")}
-        className={`relative z-10 py-28 px-6 ${animCls("testimonials")}`}
+        className={`relative z-10 py-20 px-6 ${animCls("testimonials")}`}
       >
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16 space-y-4">
             <Badge color="violet">Testimoni</Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mt-5 mb-4 text-white tracking-tight">
+            <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight">
               Kata Mereka
             </h2>
-            <p
-              className="text-base max-w-xs mx-auto"
-              style={{ color: tokens.textMuted }}
-            >
+            <p className="text-base max-w-md mx-auto" style={{ color: tokens.textMuted }}>
               Ulasan nyata dari member yang rutin bersama kami.
             </p>
           </div>
@@ -1094,16 +1178,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════ FAQ ══════════════ */}
+      {/* ════════════════════════════════════════ */}
+      {/* AREA BOTTOM: CTA & FOOTER */}
+      {/* ════════════════════════════════════════ */}
+
+      {/* ─── FAQ ─── */}
       <section
         id="faq"
         ref={(el) => registerRef(el, "faq")}
-        className={`relative z-10 py-28 px-6 ${animCls("faq")}`}
+        className={`relative z-10 py-20 px-6 ${animCls("faq")}`}
       >
         <div className="container mx-auto max-w-3xl">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16 space-y-4">
             <Badge color="cyan">FAQ</Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mt-5 mb-4 text-white tracking-tight">
+            <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight">
               Pertanyaan Umum
             </h2>
           </div>
@@ -1134,7 +1222,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════ CTA BANNER ══════════════ */}
+      {/* ─── FINAL CTA ─── */}
       <section className="relative z-10 py-8 px-6 mb-16">
         <div className="container mx-auto max-w-4xl">
           <div
@@ -1161,7 +1249,7 @@ export default function LandingPage() {
                     border: "1px solid rgba(124,58,237,0.4)",
                   }}
                 >
-                  <FaMagic
+                  <FaInfinity
                     style={{ color: tokens.violetLight, fontSize: "1.5rem" }}
                   />
                 </div>
@@ -1179,17 +1267,12 @@ export default function LandingPage() {
                 semua tersedia segera setelah daftar.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <button
+                <GradientButton
                   onClick={() => navigate("/register")}
-                  className="group flex items-center justify-center gap-2 font-black text-white px-8 py-4 rounded-2xl cursor-pointer transition-all hover:-translate-y-1"
-                  style={{
-                    background: "linear-gradient(135deg, #7C3AED, #9333EA)",
-                    boxShadow: "0 0 48px rgba(124,58,237,0.5)",
-                  }}
+                  icon={FaRocket}
                 >
-                  Daftar Sekarang{" "}
-                  <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
-                </button>
+                  Daftar Sekarang
+                </GradientButton>
                 <button
                   onClick={() => navigate("/login")}
                   className="font-bold px-8 py-4 rounded-2xl cursor-pointer transition-all border"
@@ -1207,12 +1290,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════ FOOTER ══════════════ */}
+      {/* ─── FOOTER ─── */}
       <footer
         className="relative z-10 px-6 py-16 border-t"
         style={{ borderColor: tokens.border, background: "rgba(7,7,26,0.9)" }}
       >
-        <div className="container mx-auto">
+        <div className="container mx-auto max-w-7xl">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 text-sm">
             <div>
               <button
@@ -1231,10 +1314,7 @@ export default function LandingPage() {
                   Paws & Care
                 </span>
               </button>
-              <p
-                className="leading-relaxed"
-                style={{ color: tokens.textFaint }}
-              >
+              <p className="leading-relaxed" style={{ color: tokens.textFaint }}>
                 Klinik kesehatan hewan peliharaan modern dengan layanan terpadu
                 dan program loyalty.
               </p>
@@ -1311,7 +1391,7 @@ export default function LandingPage() {
                     >
                       <Icon />
                     </a>
-                  ),
+                  )
                 )}
               </div>
               <p className="text-xs" style={{ color: tokens.textFaint }}>
@@ -1322,7 +1402,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* ══════════════ SCROLL TO TOP ══════════════ */}
+      {/* ─── SCROLL TO TOP ─── */}
       {showScrollTop && (
         <button
           onClick={scrollToTop}

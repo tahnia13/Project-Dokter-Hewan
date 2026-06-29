@@ -1,3 +1,4 @@
+// src/App.jsx
 import "./assets/tailwind.css";
 import { Routes, Route } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
@@ -10,8 +11,8 @@ function App() {
   // ========== PUBLIC PAGE (GUEST) ==========
   const LandingPage = React.lazy(() => import("./pages/LandingPage"));
   
-  // ========== NEW: MEMBER PAGE ==========
-  const MemberPage = React.lazy(() => import("./pages/MemberPage")); // Halaman Member Baru
+  // ========== MEMBER PAGE ==========
+  const MemberPage = React.lazy(() => import("./pages/MemberPage"));
 
   // ========== MAIN PAGES (ADMIN) ==========
   const Dashboard = React.lazy(() => import("./pages/Dashboard"))
@@ -49,10 +50,10 @@ function App() {
         {/* ========== PUBLIC ROUTES (GUEST) ========== */}
         {/* ============================================ */}
         
-        {/* Landing Page - Halaman Utama untuk Guest (tanpa login) */}
+        {/* Landing Page - Halaman Utama untuk Guest */}
         <Route path="/" element={<LandingPage />} />
         
-        {/* Halaman Dashboard Member (Bebas dari MainLayout Admin) */}
+        {/* Halaman Member - Untuk User/Member */}
         <Route path="/member" element={<MemberPage />} />
         
         {/* Auth Routes */}
@@ -66,7 +67,7 @@ function App() {
         {/* ========== PROTECTED ROUTES (ADMIN) ========== */}
         {/* ============================================ */}
         <Route element={<RequireAuth><MainLayout /></RequireAuth>}>
-          {/* Dashboard - pindah ke /dashboard */}
+          {/* Dashboard Admin */}
           <Route path="/dashboard" element={<Dashboard />} />
           
           {/* Main Routes */}
