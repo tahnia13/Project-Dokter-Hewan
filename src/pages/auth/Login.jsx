@@ -8,22 +8,32 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user"); // default: user
+  const [role, setRole] = useState("user");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
     
+    // Login ke Supabase, dapatkan user dengan role dari DATABASE
     const user = await loginUser(email.trim(), password);
     setLoading(false);
 
     if (user) {
+      // ========== VALIDASI ROLE ==========
+      // Cek apakah role yang dipilih user sesuai dengan role di database
+      if (user.role !== role) {
+        setError(`❌ Akses ditolak! Akun ini terdaftar sebagai ${user.role.toUpperCase()}, bukan ${role.toUpperCase()}.`);
+        return;
+      }
+      // ===================================
+
       alert(`Selamat datang kembali, ${user.name}!`);
       
-      // ========== REDIRECT BERDASARKAN ROLE YANG DIPILIH ==========
-      // Bukan dari database, tapi dari pilihan user di form!
+      // Redirect berdasarkan role yang dipilih
       switch (role) {
         case 'admin':
           navigate('/dashboard');
@@ -37,7 +47,6 @@ export default function Login() {
         default:
           navigate('/');
       }
-      // ===========================================================
     }
   };
 
@@ -54,6 +63,13 @@ export default function Login() {
             <h3 className="text-lg font-bold text-[#432C81] font-nunito uppercase tracking-tight">Login ke Akun Anda</h3>
             <p className="text-xs text-gray-500 mt-0.5">Masukkan email, password, dan pilih role Anda</p>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-sm">
+              {error}
+            </div>
+          )}
 
           {/* Email */}
           <div>
@@ -109,6 +125,9 @@ export default function Login() {
                 <option value="guest">Guest</option>
               </select>
             </div>
+            <p className="text-[10px] text-slate-400 mt-1">
+              ⚠️ Pilih role yang sesuai dengan akun Anda
+            </p>
           </div>
           {/* ================================== */}
 
@@ -121,7 +140,7 @@ export default function Login() {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full py-2.5 bg-[#432C81] hover:bg-[#342264] text-white font-bold text-xs uppercase rounded-xl transition-all shadow-xs flex items-center justify-center gap-2"
+            className="w-full py-2.5 bg-[#432C81] hover:bg-[#342264] text-white font-bold text-xs uppercase rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FaPaw size={12} /> 
             {loading ? "Memverifikasi..." : "Masuk"}

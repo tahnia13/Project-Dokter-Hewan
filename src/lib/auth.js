@@ -2,7 +2,7 @@
 import { supabase } from "./supabase";
 
 /**
- * 1. FUNGSI LOGIN
+ * 1. FUNGSI LOGIN - Mengembalikan role dari DATABASE
  */
 export async function loginUser(email, password) {
   try {
@@ -15,7 +15,7 @@ export async function loginUser(email, password) {
 
     const userAuth = authData.user;
 
-    // Ambil data profile
+    // Ambil data profile dari database
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
       .select("name, role")
@@ -32,7 +32,7 @@ export async function loginUser(email, password) {
             id: userAuth.id,
             name: userAuth.email?.split('@')[0] || "User",
             email: userAuth.email,
-            role: "user", // default
+            role: "user",
           },
         ]);
 
@@ -47,20 +47,21 @@ export async function loginUser(email, password) {
         id: userAuth.id,
         email: userAuth.email,
         name: newProfileData[0]?.name || "User",
-        role: newProfileData[0]?.role || "user",
+        role: "user",
       };
 
       localStorage.setItem("current_user", JSON.stringify(userData));
       return userData;
     }
 
+    // Ambil data profile pertama
     const profile = profileData[0];
 
     const userData = {
       id: userAuth.id,
       email: userAuth.email,
       name: profile.name,
-      role: profile.role, // admin, user, atau guest
+      role: profile.role, // ← ROLE DARI DATABASE (admin, user, guest)
     };
 
     localStorage.setItem("current_user", JSON.stringify(userData));
@@ -96,7 +97,7 @@ export const registerUser = async ({
           id: authData.user.id,
           name: name,
           email: email,
-          role: role, // admin, user, atau guest
+          role: role,
         },
       ]);
 
