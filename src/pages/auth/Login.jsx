@@ -26,7 +26,7 @@ export default function Login() {
       // ========== VALIDASI ROLE ==========
       // Cek apakah role yang dipilih user sesuai dengan role di database
       if (user.role !== role) {
-        setError(`❌ Akses ditolak! Akun ini terdaftar sebagai ${user.role.toUpperCase()}, bukan ${role.toUpperCase()}.`);
+        setError(` Akses ditolak! Akun ini terdaftar sebagai ${user.role.toUpperCase()}, bukan ${role.toUpperCase()}.`);
         return;
       }
       // ===================================
